@@ -78,21 +78,46 @@ A number of [additional files](https://github.com/github/gitignore/tree/main/Glo
 For a seamless executition, I would also recommend you have access to the below libraries prior to running the files. The libraries required to run this file (as noted below), can be installed with the following code:
 
 ```ruby
-pip install -r requirements.txt
+
 ```
 
 ,or you can manually install each of the libraries below.+
 
 ```ruby
-  import requests
+import os
+import json
+import requests
+from github import Github
+from config import config as cfg
 ```
+
+**Install Flask**:
+
+```ruby
+pip install -r requirements.txt
+pip install flask 
+pip install flask_sqlalchemy
+pip install requests
+```
+
+- Flask is essential for building your RESTful API, SQLAlchemy for database interaction and Requests for fetching external API data:
 
 ***
 
-### Open the notebook in Visual Studio Code
+**Initialize Project Structure**:
+
+WSAA-project/
+├── app.py                # Main Flask application
+├── static/               # CSS and JavaScript files
+├── templates/            # HTML files for the web interface
+├── requirements.txt      # List of dependencies
+├── README.md             # Project documentation
+
+
+### Open in Visual Studio Code
 
 - Open Visual Studio Code.
-- Open the `computer_infrastructure_assignments` folder.
+- Open the `WSAA_project` folder.
 - Open the folder associated with the assignment you wish to look at.
 
 ## 4. How to get help
@@ -111,54 +136,9 @@ Additionally, a number of links are embedded within the code, in areas that I fo
 
 ## 5. How to contribute
 
-As this project was created to fulfil an assessment requirement of the Principles of Data Analytics, as part of the H.Dip in Science in Data Analytics, no contributions will be allowed, in order to comply with ATU Policy on [Plagiarism](https://www.atu.ie/sites/default/files/2024-02/aqae022-academic-integrity-policy-1.pdf) and the [Student Code of Conduct](https://www.atu.ie/sites/default/files/2022-08/Student%20Code_Final_August_2022.pdf).
+As this project was created to fulfil an assessment requirement of the Web Services and Applications 24-25: 8640, as part of the H.Dip in Science in Data Analytics, no contributions will be allowed, in order to comply with ATU Policy on [Plagiarism](https://www.atu.ie/sites/default/files/2024-02/aqae022-academic-integrity-policy-1.pdf) and the [Student Code of Conduct](https://www.atu.ie/sites/default/files/2022-08/Student%20Code_Final_August_2022.pdf).
 
 Should you find any errors or have any recommendations, please submit a pull request on GitHub. or just wish to contact that author, you can do so at <maxwell6826@gmail.com>.
-
-***
-
-## **6. Weekly Assignments**
-
-## **Assignment 02** - Card Draw
-
-**Assignment Instructions:**
-
-Using the [Deck of Cards API](https://deckofcardsapi.com/),
-
-1. Write a program that "deals" (prints out) 5 cards (get the deck_id)
-1. Print the value and the suit of each card.
-
-Last few marks:
-Check if the user has drawn a pair, triple, straight, or all of the same suit and congratulate the user.
-
-***
-
-## **Assignment 03** - CSO
-
-**Assignment Instructions:**
-
-Write a program that retrieves the dataset for the "exchequer account (historical series)" from the CSO, and stores it into a file called "cso.json".
-
-1. Upload this program to the same repository you used for the first assignment
-1. Save this assignment as "assignment03-cso.py"
-
-***
-
-## **Assignment 04** - github.py  
-
-**Assignment Instructions:**
-
-1. Write a program in python that will read a file from a repository.
-1. The program should then replace all the instances of the text "Andrew" with your name.
-1. The program should then commit those changes and push the file back to the repository.
-
-**My notes:**
-
-Is it very import that no API keys are pushed to github, it is best practice to store the 'keys' in a 'config.py' file and called upon each time there are needed.
-
-Its also essential that you add 'config.py' to your '.ignore' file, as this will ensure that this file is not pushed up to github.
-
-The code was amended so that the new content would be saved to a new file ad
 
 ***
 
