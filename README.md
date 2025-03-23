@@ -81,7 +81,7 @@ For a seamless executition, I would also recommend you have access to the below 
 
 ```
 
-,or you can manually install each of the libraries below.+
+,or you can manually install each of the libraries below.
 
 ```ruby
 import os
