@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "Welcome to the Air Quality Emissions API!"
+    return "Welcome to the Air Quality Interface!"
 
 # Get all emissions records
 # curl http://127.0.0.1:5000/emissions

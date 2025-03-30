@@ -26,42 +26,74 @@ class Emission(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 # DAO class
+import sqlite3
+
 class EmissionDAO:
-    def __init__(self):
-        # Create the emissions table if it doesn't exist
-        Base.metadata.create_all(engine)
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self._initialize_database()
 
-    def add_emission(self, facility_name, location, pollutant, amount, compliance_status):
-        new_emission = Emission(
-            facility_name=facility_name,
-            location=location,
-            pollutant=pollutant,
-            amount=amount,
-            compliance_status=compliance_status
-        )
-        session.add(new_emission)
-        session.commit()
-        return new_emission
+    def _initialize_database(self):
+        # Connect to the database and create tables if they don't exist
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS emissions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                location TEXT NOT NULL,
+                pollutant TEXT CHECK (pollutant IN ('PM10', 'PM2.5', 'NOx', 'SOx')) NOT NULL,
+                concentration REAL NOT NULL,
+                timestamp TEXT NOT NULL
+            )
+        ''')
+        conn.commit()
+        conn.close()
 
-    def get_all_emissions(self):
-        return session.query(Emission).all()
+    def add_emission(self, location, pollutant, concentration, timestamp):
+        # Add an emission record
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO emissions (location, pollutant, concentration, timestamp)
+            VALUES (?, ?, ?, ?)
+        ''', (location, pollutant, concentration, timestamp))
+        conn.commit()
+        conn.close()
 
-    def get_emission_by_id(self, emission_id):
-        return session.query(Emission).filter(Emission.id == emission_id).first()
+    def get_emissions(self):
+        # Retrieve all emissions
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM emissions')
+        rows = cursor.fetchall()
+        conn.close()
+        return rows
 
-    def update_emission(self, emission_id, **kwargs):
-        emission = session.query(Emission).filter(Emission.id == emission_id).first()
-        if emission:
-            for key, value in kwargs.items():
-                setattr(emission, key, value)
-            session.commit()
-            return emission
-        return None
+    def update_emission(self, emission_id, location, pollutant, concentration, timestamp):
+        # Update an emission record
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE emissions
+            SET location = ?, pollutant = ?, concentration = ?, timestamp = ?
+            WHERE id = ?
+        ''', (location, pollutant, concentration, timestamp, emission_id))
+        conn.commit()
+        conn.close()
 
     def delete_emission(self, emission_id):
-        emission = session.query(Emission).filter(Emission.id == emission_id).first()
-        if emission:
-            session.delete(emission)
-            session.commit()
-            return True
-        return False
+        # Delete an emission record
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM emissions WHERE id = ?', (emission_id,))
+        conn.commit()
+        conn.close()
+
+# Example usage
+if __name__ == '__main__':
+    dao = EmissionDAO('emissions.db')
+    dao.add_emission('Dublin', 'PM10', 25.5, '2025-03-30T14:00:00')
+    emissions = dao.get_emissions()
+    for emission in emissions:
+        print(emission)
+
