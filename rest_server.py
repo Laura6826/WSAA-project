@@ -2,6 +2,17 @@
 # Main Flask application
 # Author: Laura Lyons
 
+from flask import Flask, request, jsonify
+from air_quality_dao import AirQualityDAO, Base, engine  
+
+# Initialize Flask
+app = Flask(__name__)
+
+# Create tables in the database if they don't already exist
+Base.metadata.create_all(engine)
+
+# Initialize the DAO
+air_quality_dao = AirQualityDAO()
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -23,7 +34,7 @@ def find_emission_by_id(id):
     return f"Retrieve emission record with ID: {id}"
 
 # Create a new emissions record
-# curl -X POST -d "{\"location\":\"test location\", \"pollutant\":\"CO2\", \"amount\":123.45}" -H "Content-Type: application/json" http://127.0.0.1:5000/emissions
+# 
 @app.route('/emissions', methods=['POST'])
 def create_emission():
     # Read JSON data from the request body
@@ -45,3 +56,4 @@ def delete_emission(id):
 
 if __name__ == "__main__":
     app.run(debug=True)
+curl -X POST -d "{\"location\":\"test location\", \"pollutant\":\"CO2\", \"amount\":123.45}" -H "Content-Type: application/json" http://127.0.0.1:5000/emissions
