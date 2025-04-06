@@ -9,13 +9,14 @@ Author: Laura Lyons -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cork City Car Parking Checker</title>
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             margin: 0;
             padding: 0;
-            background: url("static/cork_city.jpg") no-repeat center center fixed;
+            background: url("/static/cork_city.jpg") no-repeat center center fixed;
             background-size: cover;
             font-family: Arial, sans-serif;
         }
@@ -28,39 +29,50 @@ Author: Laura Lyons -->
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
         }
     </style>
+
 </head>
 <body>
     <div class="content">
+        <!-- Application Header -->
         <h1 class="text-center mb-4" style="color: rgb(199, 5, 5); font-weight: bold;">Cork City: Car Parking Checker</h1>
 
-        <!-- Car Park Selection -->
-        <div class="mb-4">
-            <label for="carParkDropdown" class="form-label">Select Car Park to check space availability:</label>
-            <select class="form-select" id="carParkDropdown" onchange="checkFreeSpaces()"></select>
-            <div class="alert alert-info mt-3" id="freeSpacesResult" role="alert"></div>
+        <!-- Current time display -->
+        <div id="currentTimeDisplay" style="font-size: 1.2rem; font-weight: bold;">
+            The time is now: <span id="setCurrentTime"></span>
         </div>
 
-        <!-- Vehicle Height Check -->
-        <div>
-            <h4 class="text-center mb-3" style="font-weight: bold;">Vehicle Height Check</h4>
-            <div class="mb-3">
-                <label for="vehicleHeight" class="form-label">Enter Your Vehicle Height (meters):</label>
-                <input type="number" id="vehicleHeight" step="0.01" class="form-control" placeholder="e.g., 2.1">
-            </div>
-            <button class="btn btn-primary w-100" onclick="checkHeightCompatibility()">Check Compatibility</button>
-            <div class="alert alert-warning mt-3" id="heightCheckResult" role="alert"></div>
-        </div>
-
-        <!-- Error Handling -->
+        <!-- Car park selection dropdown-->
         <div class="mt-4">
-            <p id="errorMessage" class="text-danger"></p>
+            <label for="carParkDropdown" class="form-label" style="font-weight: bold;" >Select Car Park to check availability: </label>
+            <select id="carParkDropdown" class="form-select"></select>
+        </div>
+
+        <!-- Car park space availability -->
+        <div class="mt-4 alert" id="freeSpacesResult" role="alert" style="background-color: rgb(71, 195, 85); border: 2px solid rgb(2, 65, 10); border-radius: 8px; padding: 10px;">
+            <label for="checkFreeSpaces" class="form-label" style="font-weight: bold; color: rgb(0, 3, 1); display: block; margin-bottom: 5px;">Parking space availability</label>
+            <span id="freeSpacesContent" style="font-size: 1rem;"></span>
+        </div>        
+
+        <!-- Car park opening hours -->
+        <div class="mt-4 alert alert-info" id="openingHoursResult" role="alert" style="background-color: lightblue; border: 2px solid blue; border-radius: 8px; padding: 10px;">
+            <label for="openingHoursResult" class="form-label" style="font-weight: bold; color: rgb(0, 0, 11); display: block; margin-bottom: 5px;">Car park opening hours</label>
+            <!-- Dynamic opening hours content will appear here -->
+            <span id="openingHoursContent"></span>
+        </div>
+
+        <!-- Car park height restrictions -->
+        <div class="mt-4 alert alert-danger" id="heightRestrictionNotice" role="alert" style="background-color: rgb(217, 94, 94); border: 2px solid rgb(134, 9, 9); border-radius: 8px; padding: 10px;">
+            <label for="heightRestrictionNotice" class="form-label" style="font-weight: bold; color: rgb(3, 0, 0); display: block; margin-bottom: 5px;">Height restrictions</label>
+            <!-- Content for height restrictions will go here -->
+            <span id="heightRestrictionContent"></span>
         </div>
     </div>
 
-    <!-- Bootstrap JS Bundle -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
+
+        // Car Park Data
         const heightRestrictions = {
             "Black Ash Park & Ride": 2.1,
             "North Main Street": 2.0,
@@ -71,6 +83,126 @@ Author: Laura Lyons -->
             "Merchants Quay": 1.98,
             "Grand Parade": 1.85
         };
+
+        const carParkDetails = {
+            "Black Ash Park & Ride": { 
+                height: 2.1, 
+                schedule: {
+                    "Monday": { openingTime: "06:45", closingTime: "20:00" },
+                    "Tuesday": { openingTime: "06:45", closingTime: "20:00" },
+                    "Wednesday": { openingTime: "06:45", closingTime: "20:00" },
+                    "Thursday": { openingTime: "06:45", closingTime: "20:00" },
+                    "Friday": { openingTime: "06:45", closingTime: "20:00" },
+                    "Saturday": { openingTime: "06:45", closingTime: "20:00" },
+                    "Sunday": { status: "Closed" } // Specify closed status for Sunday
+                }
+            },
+            "North Main Street": { 
+                height: 2.0, 
+                schedule: {
+                    "Monday": { openingTime: "07:30", closingTime: "21:30" },
+                    "Tuesday": { openingTime: "07:30", closingTime: "21:30" },
+                    "Wednesday": { openingTime: "07:30", closingTime: "21:30" },
+                    "Thursday": { openingTime: "07:30", closingTime: "21:30" },
+                    "Friday": { openingTime: "07:30", closingTime: "21:30" },
+                    "Saturday": { openingTime: "07:30", closingTime: "21:30" },
+                    "Sunday": { status: "Closed" } 
+                }
+            },
+
+            "Merchants Quay": { 
+                height: 2.0, 
+                schedule: {
+                    "Monday": { openingTime: "08:00", closingTime: "19:00" },
+                    "Tuesday": { openingTime: "08:00", closingTime: "19:00" },
+                    "Wednesday": { openingTime: "08:00", closingTime: "19:00" },
+                    "Thursday": { openingTime: "08:00", closingTime: "19:00" },
+                    "Friday": { openingTime: "08:00", closingTime: "21:00" },
+                    "Saturday": { openingTime: "08:00", closingTime: "19:00" },
+                    "Sunday": { openingTime: "12:00", closingTime: "18:30" }
+                }
+            },
+
+            "City Hall - Eglington Street": { 
+                height: 2.0, 
+                schedule: {
+                    "Monday": { status: "24 Hours" },
+                    "Tuesday": { status: "24 Hours" },
+                    "Wednesday": { status: "24 Hours" },
+                    "Thursday": { status: "24 Hours" },
+                    "Friday": { status: "24 Hours" },
+                    "Saturday": { status: "24 Hours" },
+                    "Sunday": { status: "24 Hours" }
+                }
+            },
+
+            "Carrolls Quay": { 
+                height: 2.0, 
+                schedule: {
+                    "Monday": { status: "24 Hours" },
+                    "Tuesday": { status: "24 Hours" },
+                    "Wednesday": { status: "24 Hours" },
+                    "Thursday": { status: "24 Hours" },
+                    "Friday": { status: "24 Hours" },
+                    "Saturday": { status: "24 Hours" },
+                    "Sunday": { status: "24 Hours" }
+                }
+            },
+
+            "Saint Finbarr's": { 
+                height: 2.0, 
+                schedule: {
+                    "Monday": { status: "24 Hours" },
+                    "Tuesday": { status: "24 Hours" },
+                    "Wednesday": { status: "24 Hours" },
+                    "Thursday": { status: "24 Hours" },
+                    "Friday": { status: "24 Hours" },
+                    "Saturday": { status: "24 Hours" },
+                    "Sunday": { status: "24 Hours" }
+                }
+            },
+
+            "Grand Parade": { 
+                height: 1.85, 
+                schedule: {
+                    "Monday": { status: "24 Hours" },
+                    "Tuesday": { status: "24 Hours" },
+                    "Wednesday": { status: "24 Hours" },
+                    "Thursday": { status: "24 Hours" },
+                    "Friday": { status: "24 Hours" },
+                    "Saturday": { status: "24 Hours" },
+                    "Sunday": { status: "24 Hours" }
+                }
+            },
+
+            "Paul Street": { 
+                height: 2.0, 
+                schedule: {
+                    "Monday": { status: "24 Hours" },
+                    "Tuesday": { status: "24 Hours" },
+                    "Wednesday": { status: "24 Hours" },
+                    "Thursday": { status: "24 Hours" },
+                    "Friday": { status: "24 Hours" },
+                    "Saturday": { status: "24 Hours" },
+                    "Sunday": { status: "24 Hours" }
+                }
+            },
+        };
+        // Populate car park dropdown
+        async function CarParkDropdown() {
+            const parkingData = await fetchParkingData();
+            const dropdown = document.getElementById("carParkDropdown");
+            dropdown.innerHTML = '<option value="">Select Car Park</option>';
+
+            parkingData.forEach(park => {
+                const option = document.createElement("option");
+                option.value = park.name || "Unknown";
+                option.dataset.freeSpaces = park.free_spaces || "0";
+                option.dataset.heightRestriction = heightRestrictions[park.name] || "Unknown";
+                option.innerText = park.name || "Unnamed Car Park";
+                dropdown.appendChild(option);
+            });
+        }
 
         // Fetch parking data from the server
         async function fetchParkingData() {
@@ -91,28 +223,12 @@ Author: Laura Lyons -->
             }
         }
 
-        // Populate car park dropdown
-        async function populateCarParkDropdown() {
-            const parkingData = await fetchParkingData();
-            const dropdown = document.getElementById("carParkDropdown");
-            dropdown.innerHTML = '<option value="">Select Car Park</option>';
-
-            parkingData.forEach(park => {
-                const option = document.createElement("option");
-                option.value = park.name || "Unknown";
-                option.dataset.freeSpaces = park.free_spaces || "0";
-                option.dataset.heightRestriction = heightRestrictions[park.name] || "Unknown";
-                option.innerText = park.name || "Unnamed Car Park";
-                dropdown.appendChild(option);
-            });
-        }
-
         // Check if the car park has free spaces
         function checkFreeSpaces() {
             const dropdown = document.getElementById("carParkDropdown");
             const selectedOption = dropdown.options[dropdown.selectedIndex];
             const freeSpaces = parseInt(selectedOption.dataset.freeSpaces) || 0;
-            const resultContainer = document.getElementById("freeSpacesResult");
+            const resultContainer = document.getElementById("checkFreeSpaces"); // Correct ID
             resultContainer.className = "alert mt-3";
             if (freeSpaces > 0) {
                 resultContainer.innerText = `Yes, there are ${freeSpaces} free spaces available.`;
@@ -124,36 +240,132 @@ Author: Laura Lyons -->
             resultContainer.classList.remove("d-none");
         }
 
-        // Check vehicle height compatibility
-        function checkHeightCompatibility() {
-            const dropdown = document.getElementById("carParkDropdown");
-            const selectedOption = dropdown.options[dropdown.selectedIndex];
-            const heightRestriction = parseFloat(selectedOption.dataset.heightRestriction);
+        // Add your event listeners after the dropdown is populated
+        window.onload = async function () {
+            await populateCarParkDropdown(); // Populate the dropdown
+            document.getElementById("carParkDropdown").addEventListener("change", checkFreeSpaces); // Add listener
+        };
+    
+        // Get Current Day Name
+        function getCurrentDayName() {
+            const dayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            return days[dayIndex];
+        }
+            
+        // Function to set and display the current time
+        function setCurrentTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0'); // Add leading zero for hours
+            const minutes = String(now.getMinutes()).padStart(2, '0'); // Add leading zero for minutes
+            const currentTime = `${hours}:${minutes}`; // Format: HH:MM
+            document.getElementById("currentTime").innerText = currentTime; // Update the time display
+        }
 
-            const vehicleHeight = parseFloat(document.getElementById("vehicleHeight").value);
+        // Initialize and update the current time on page load
+        window.onload = function() {
+            setCurrentTime(); // Set the current time initially
+            setInterval(setCurrentTime, 60000); // Update every minute
+        };
 
-            const resultContainer = document.getElementById("heightCheckResult");
-            resultContainer.className = "alert mt-3";
+        // Get the current day name
+        function getCurrentDayName() {
+        const dayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        return days[dayIndex];
+        }
+        
+        function handleCarParkSchedule(scheduleForToday, freeSpaces, selectedOption) {
+            const resultContainer = document.getElementById("carParkInfoResult");
+            const now = new Date();
 
-            if (!selectedOption.value) {
-                resultContainer.innerText = "Please select a valid car park.";
-                resultContainer.classList.add("alert-warning");
-            } else if (!heightRestriction || heightRestriction === "Unknown") {
-                resultContainer.innerText = `Height restriction data is missing for "${selectedOption.value}".`;
-                resultContainer.classList.add("alert-warning");
-            } else if (vehicleHeight <= heightRestriction) {
-                resultContainer.innerText = `Your vehicle fits the height restriction of ${heightRestriction} meters for "${selectedOption.value}".`;
+            if (scheduleForToday?.status === "24 Hours") {
+                resultContainer.innerHTML = `
+                    <strong>${selectedOption.value}:</strong> Open 24 hours today.<br>
+                    Free spaces: ${freeSpaces}.
+                `;
                 resultContainer.classList.add("alert-success");
-            } else {
-                resultContainer.innerText = `Your vehicle exceeds the height restriction of ${heightRestriction} meters for "${selectedOption.value}".`;
-                resultContainer.classList.add("alert-danger");
+                return;
             }
 
-            resultContainer.classList.remove("d-none");
+            const closingTime = scheduleForToday?.closingTime || "N/A";
+            const [closingHours, closingMinutes] = closingTime.split(":").map(Number);
+            const minutesUntilClosing = (closingHours * 60 + closingMinutes) - (now.getHours() * 60 + now.getMinutes());
+
+            if (minutesUntilClosing <= 0) {
+                resultContainer.innerHTML = `
+                    <strong>${selectedOption.value}:</strong> Already closed.<br>
+                    Free spaces: ${freeSpaces}.
+                `;
+                resultContainer.classList.add("alert-danger");
+            } else if (minutesUntilClosing <= 60) {
+                resultContainer.innerHTML = `
+                    <strong>${selectedOption.value}:</strong> Closes in ${minutesUntilClosing} minutes.<br>
+                    Free spaces: ${freeSpaces}.
+                `;
+                resultContainer.classList.add("alert-warning");
+            } else {
+                resultContainer.innerHTML = `
+                    <strong>${selectedOption.value}:</strong> Closes at ${closingTime} today.<br>
+                    Free spaces: ${freeSpaces}.
+                `;
+                resultContainer.classList.add("alert-info");
+            }
         }
+
+        // Display car park details: opening hours and height restriction
+        function displayCarParkInfo() {
+            const dropdown = document.getElementById("carParkDropdown");
+            const selectedCarPark = carParkDetails[dropdown.value];
+            const openingHoursResult = document.getElementById("openingHoursResult");
+            const heightRestrictionNotice = document.getElementById("heightRestrictionNotice");
+            const currentDay = getCurrentDayName();
+
+            if (selectedCarPark) {
+                // Display opening hours
+                const scheduleForToday = selectedCarPark.schedule[currentDay];
+                if (scheduleForToday && scheduleForToday.status === "Closed") {
+                    openingHoursResult.innerHTML = `<strong>${dropdown.value}:</strong> Closed today.`;
+                    openingHoursResult.className = "alert alert-warning";
+                } else {
+                    const openingTime = scheduleForToday?.openingTime || "N/A";
+                    const closingTime = scheduleForToday?.closingTime || "N/A";
+                    openingHoursResult.innerHTML = `<strong>${dropdown.value}:</strong> Open from ${openingTime} to ${closingTime}.`;
+                    openingHoursResult.className = "alert alert-info";
+                }
+
+                // Display height restriction
+                heightRestrictionNotice.innerHTML = `<strong>Important Notice:</strong> Height restriction for this car park is ${selectedCarPark.height} meters.`;
+                heightRestrictionNotice.className = "alert alert-danger";
+            } else {
+                // Handle invalid selection
+                openingHoursResult.innerHTML = "Please select a valid car park.";
+                openingHoursResult.className = "alert alert-warning";
+                heightRestrictionNotice.innerHTML = ""; // Clear height restriction notice
+            }
+        }
+
+        // Populate dropdown menu with car park options
+        function populateDropdown() {
+            const dropdown = document.getElementById("carParkDropdown");
+            dropdown.innerHTML = '<option value="">Select Car Park</option>';
+            Object.keys(carParkDetails).forEach(carPark => {
+                const option = document.createElement("option");
+                option.value = carPark;
+                option.textContent = carPark;
+                dropdown.appendChild(option);
+            });
+        }
+
+        // Initialize dropdown and attach event listener
+        window.onload = function () {
+            populateDropdown();
+            document.getElementById("carParkDropdown").addEventListener("change", displayCarParkInfo);
+        };
 
         // Initialize dropdown on page load
         window.onload = populateCarParkDropdown;
+
     </script>
 </body>
 </html>

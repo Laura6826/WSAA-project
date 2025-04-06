@@ -29,11 +29,11 @@ def fetch_parking_data():
     SELECT * FROM "{RESOURCE_ID}" 
     """
     try:
-        logging.debug(f"SQL Query Sent: {sql_query}")
+        logging.debug("SQL Query Sent: %s", sql_query)
         params = {"sql": sql_query}
 
         # Make the API request
-        response = requests.get(API_URL, params=params)
+        response = requests.get(API_URL, params=params, timeout=10)
         logging.debug(f"Response Status: {response.status_code}")
         logging.debug(f"Response Data: {response.text}")
 
