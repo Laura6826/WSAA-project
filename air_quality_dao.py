@@ -71,3 +71,15 @@ class AirQualityDAO:
         self.session.delete(record)
         self.session.commit()
         return record
+
+    def bulk_create_air_quality(self, data_list):
+        """Insert multiple records into the Air Quality table."""
+        for data in data_list:
+            new_entry = AirQuality(
+                location=data['location'],
+                pollutant=data['pollutant'],
+                concentration=data['concentration'],
+                timestamp=data['timestamp']
+            )
+            self.session.add(new_entry)
+        self.session.commit()
