@@ -78,7 +78,7 @@ A number of [additional files](https://github.com/github/gitignore/tree/main/Glo
 For a seamless executition, I would also recommend you have access to the below libraries prior to running the files. The libraries required to run this file (as noted below), can be installed with the following code:
 
 ```ruby
-
+pip install -r requirements.txt
 ```
 
 ,or you can manually install each of the libraries below.
@@ -111,7 +111,7 @@ pip install requests
 **Initialize Project Structure**:
 
 WSAA-project/
-├── app.py                # Main Flask application
+├── rest_server.py        # Main Flask application
 ├── static/               # CSS and JavaScript files
 ├── templates/            # HTML files for the web interface
 ├── requirements.txt      # List of dependencies

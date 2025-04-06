@@ -16,188 +16,157 @@ Author: Laura Lyons -->
     <div class="container mt-4">
         <h1 class="text-center">Parking Management Interface</h1>
 
+        <!-- Section: Select Parking Location -->
+        <div class="mb-4">
+            <h5>Select Car Park by Name</h5>
+            <select id="carParkDropdown" class="form-select">
+                <!-- Car parks will be dynamically added here -->
+            </select>
+            <button id="showCarPark" class="btn btn-primary mt-3">Check Car Park Details</button>
+            <div id="carParkResult" class="mt-3"></div>
+        </div>
+
+        <!-- Section: Enter Vehicle Details -->
+        <div class="mb-4">
+            <h5>Vehicle Height Check</h5>
+            <form id="heightCheckForm">
+                <div class="row mb-2">
+                    <div class="col">
+                        <input type="number" step="0.01" id="vehicleHeight" class="form-control" placeholder="Your Vehicle Height (meters)" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Check Compatibility</button>
+            </form>
+            <div id="heightCheckResult" class="mt-3"></div>
+        </div>
+
+        <!-- Section: Enter Parking Time Details -->
+        <div class="mb-4">
+            <h5>Calculate Parking Cost</h5>
+            <form id="parkingCostForm">
+                <div class="row mb-2">
+                    <div class="col">
+                        <input type="time" id="startTime" class="form-control" placeholder="Start Time" required>
+                    </div>
+                    <div class="col">
+                        <input type="time" id="endTime" class="form-control" placeholder="End Time" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-warning">Calculate Cost</button>
+            </form>
+            <div id="parkingCostResult" class="mt-3"></div>
+        </div>
+
         <!-- Section: Fetch Parking Data -->
         <div class="mb-4">
             <button id="fetchData" class="btn btn-primary">Fetch Parking Data</button>
             <div id="fetchResult" class="mt-3"></div>
         </div>
-
-        <!-- Section: CRUD Operations -->
-        <div class="mb-4">
-            <h3>CRUD Operations</h3>
-            <!-- Create Parking -->
-            <h5>Create Parking Record</h5>
-            <form id="createForm">
-                <div class="row mb-2">
-                    <div class="col">
-                        <input type="number" id="createIdd" class="form-control" placeholder="ID" required>
-                    </div>
-                    <div class="col">
-                        <input type="text" id="createName" class="form-control" placeholder="Parking Name" required>
-                    </div>
-                    <div class="col">
-                        <input type="number" id="createSpaces" class="form-control" placeholder="Spaces Available" required>
-                    </div>
-                    <div class="col">
-                        <input type="number" id="createFreeSpaces" class="form-control" placeholder="Free Spaces" required>
-                    </div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col">
-                        <input type="text" id="createOpeningTimes" class="form-control" placeholder="Opening Times" required>
-                    </div>
-                    <div class="col">
-                        <input type="text" id="createHeightRestriction" class="form-control" placeholder="Height Restriction">
-                    </div>
-                    <div class="col">
-                        <input type="text" id="createPricesRates" class="form-control" placeholder="Prices Rates">
-                    </div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col">
-                        <input type="number" step="0.0001" id="createLatitude" class="form-control" placeholder="Latitude" required>
-                    </div>
-                    <div class="col">
-                        <input type="number" step="0.0001" id="createLongitude" class="form-control" placeholder="Longitude" required>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-success">Create Parking Record</button>
-            </form>
-            <div id="createResult" class="mt-3"></div>
-
-            <!-- Get Parking by ID -->
-            <h5>Retrieve Parking Record by ID</h5>
-            <form id="getForm">
-                <div class="row mb-2">
-                    <div class="col">
-                        <input type="number" id="getIdd" class="form-control" placeholder="ID" required>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-info">Retrieve Parking Record</button>
-            </form>
-            <div id="getResult" class="mt-3"></div>
-
-            <!-- Update Parking -->
-            <h5>Update Parking Record</h5>
-            <form id="updateForm">
-                <div class="row mb-2">
-                    <div class="col">
-                        <input type="number" id="updateIdd" class="form-control" placeholder="ID" required>
-                    </div>
-                    <div class="col">
-                        <input type="text" id="updateName" class="form-control" placeholder="Parking Name">
-                    </div>
-                    <div class="col">
-                        <input type="number" id="updateSpaces" class="form-control" placeholder="Spaces Available">
-                    </div>
-                    <div class="col">
-                        <input type="number" id="updateFreeSpaces" class="form-control" placeholder="Free Spaces">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-warning">Update Parking Record</button>
-            </form>
-            <div id="updateResult" class="mt-3"></div>
-
-            <!-- Delete Parking -->
-            <h5>Delete Parking Record</h5>
-            <form id="deleteForm">
-                <div class="row mb-2">
-                    <div class="col">
-                        <input type="number" id="deleteIdd" class="form-control" placeholder="ID" required>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-danger">Delete Parking Record</button>
-            </form>
-            <div id="deleteResult" class="mt-3"></div>
-        </div>
     </div>
 
     <script>
-        // Fetch parking data
+        // Populate dropdown with car park names
+        function populateDropdown() {
+            $.get("/api/parking", function(data) {
+                const dropdown = $("#carParkDropdown");
+                dropdown.empty();
+                data.forEach(parking => {
+                    dropdown.append(`<option value="${parking.parking_name}">${parking.parking_name}</option>`);
+                });
+            }).fail(function(error) {
+                $("#carParkResult").html("<pre>Error: " + JSON.stringify(error.responseJSON, null, 2) + "</pre>");
+            });
+        }
+
+        // Show car park details
+        $("#showCarPark").click(function() {
+            const selectedCarPark = $("#carParkDropdown").val();
+            $.get("/api/parking", function(data) {
+                const result = data.find(parking => parking.parking_name === selectedCarPark);
+
+                if (result) {
+                    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const openingTimes = result.opening_times.split(" to ");
+                    const isOpen = currentTime >= openingTimes[0] && currentTime <= openingTimes[1];
+
+                    let statusMessage = isOpen ? "Open" : "Closed";
+                    if (result.spaces_available > result.free_spaces) {
+                        $("#carParkResult").html(`<p>Car Park Status: ${statusMessage}</p>
+                        <p>Free Spaces: ${result.free_spaces}</p>
+                        <p>Height Restriction: ${result.height_restriction}</p>
+                        <p>Price Rates: ${result.prices_rates}</p>`);
+                    } else {
+                        $("#carParkResult").html("<p>Sorry, no spaces are available!</p>");
+                    }
+                } else {
+                    $("#carParkResult").html("<p>No data found for the selected car park.</p>");
+                }
+            }).fail(function(error) {
+                $("#carParkResult").html("<pre>Error: " + JSON.stringify(error.responseJSON, null, 2) + "</pre>");
+            });
+        });
+
+        // Check vehicle height compatibility
+        $("#heightCheckForm").submit(function(e) {
+            e.preventDefault();
+            const selectedCarPark = $("#carParkDropdown").val();
+            const vehicleHeight = parseFloat($("#vehicleHeight").val());
+
+            $.get("/api/parking", function(data) {
+                const result = data.find(parking => parking.parking_name === selectedCarPark);
+                if (result) {
+                    const heightRestriction = parseFloat(result.height_restriction);
+                    if (vehicleHeight <= heightRestriction) {
+                        $("#heightCheckResult").html("<p>Your vehicle can fit in this car park!</p>");
+                    } else {
+                        $("#heightCheckResult").html("<p>Your vehicle exceeds the height restriction!</p>");
+                    }
+                } else {
+                    $("#heightCheckResult").html("<p>No data found for the selected car park.</p>");
+                }
+            }).fail(function(error) {
+                $("#heightCheckResult").html("<pre>Error: " + JSON.stringify(error.responseJSON, null, 2) + "</pre>");
+            });
+        });
+
+        // Calculate parking cost
+        $("#parkingCostForm").submit(function(e) {
+            e.preventDefault();
+            const selectedCarPark = $("#carParkDropdown").val();
+            const startTime = $("#startTime").val();
+            const endTime = $("#endTime").val();
+
+            $.get("/api/parking", function(data) {
+                const result = data.find(parking => parking.parking_name === selectedCarPark);
+                if (result) {
+                    const priceRates = parseFloat(result.prices_rates.replace("€/hour", ""));
+                    const start = new Date(`1970-01-01T${startTime}:00`);
+                    const end = new Date(`1970-01-01T${endTime}:00`);
+                    const hours = Math.abs(end - start) / 36e5;
+
+                    const cost = hours * priceRates;
+                    $("#parkingCostResult").html(`<p>Total Parking Cost: €${cost.toFixed(2)}</p>`);
+                } else {
+                    $("#parkingCostResult").html("<p>No data found for the selected car park.</p>");
+                }
+            }).fail(function(error) {
+                $("#parkingCostResult").html("<pre>Error: " + JSON.stringify(error.responseJSON, null, 2) + "</pre>");
+            });
+        });
+
+        // Fetch parking data and populate dropdown
         $("#fetchData").click(function() {
             $.get("/api/fetch", function(data) {
                 $("#fetchResult").html("<pre>" + JSON.stringify(data, null, 2) + "</pre>");
+                populateDropdown(); // Refresh dropdown with updated data
             }).fail(function(error) {
                 $("#fetchResult").html("<pre>Error: " + JSON.stringify(error.responseJSON, null, 2) + "</pre>");
             });
         });
 
-        // Create parking record
-        $("#createForm").submit(function(e) {
-            e.preventDefault();
-            const payload = {
-                idd: $("#createIdd").val(),
-                parking_name: $("#createName").val(),
-                spaces_available: $("#createSpaces").val(),
-                free_spaces: $("#createFreeSpaces").val(),
-                opening_times: $("#createOpeningTimes").val(),
-                height_restriction: $("#createHeightRestriction").val(),
-                prices_rates: $("#createPricesRates").val(),
-                latitude: $("#createLatitude").val(),
-                longitude: $("#createLongitude").val(),
-            };
-            $.ajax({
-                url: "/api/parking",
-                method: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(payload),
-                success: function(data) {
-                    $("#createResult").html("<pre>" + JSON.stringify(data, null, 2) + "</pre>");
-                },
-                error: function(error) {
-                    $("#createResult").html("<pre>Error: " + JSON.stringify(error.responseJSON, null, 2) + "</pre>");
-                }
-            });
-        });
-
-        // Get parking record by ID
-        $("#getForm").submit(function(e) {
-            e.preventDefault();
-            const id = $("#getIdd").val();
-            $.get(`/api/parking/${id}`, function(data) {
-                $("#getResult").html("<pre>" + JSON.stringify(data, null, 2) + "</pre>");
-            }).fail(function(error) {
-                $("#getResult").html("<pre>Error: " + JSON.stringify(error.responseJSON, null, 2) + "</pre>");
-            });
-        });
-
-        // Update parking record
-        $("#updateForm").submit(function(e) {
-            e.preventDefault();
-            const id = $("#updateIdd").val();
-            const payload = {
-                parking_name: $("#updateName").val(),
-                spaces_available: $("#updateSpaces").val(),
-                free_spaces: $("#updateFreeSpaces").val(),
-            };
-            $.ajax({
-                url: `/api/parking/${id}`,
-                method: "PUT",
-                contentType: "application/json",
-                data: JSON.stringify(payload),
-                success: function(data) {
-                    $("#updateResult").html("<pre>" + JSON.stringify(data, null, 2) + "</pre>");
-                },
-                error: function(error) {
-                    $("#updateResult").html("<pre>Error: " + JSON.stringify(error.responseJSON, null, 2) + "</pre>");
-                }
-            });
-        });
-
-        // Delete parking record
-        $("#deleteForm").submit(function(e) {
-            e.preventDefault();
-            const id = $("#deleteIdd").val();
-            $.ajax({
-                url: `/api/parking/${id}`,
-                method: "DELETE",
-                success: function(data) {
-                    $("#deleteResult").html("<pre>" + JSON.stringify(data, null, 2) + "</pre>");
-                },
-                error: function(error) {
-                    $("#deleteResult").html("<pre>Error: " + JSON.stringify(error.responseJSON, null, 2) + "</pre>");
-                }
-            });
+        // Initial population of dropdown on page load
+        $(document).ready(function() {
+            populateDropdown();
         });
     </script>
 </body>
