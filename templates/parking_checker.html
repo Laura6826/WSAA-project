@@ -1,8 +1,3 @@
-<!--WSAA-project: Web Services and Applications.
-This is a CRUD application for Cork City car parking data.
-This HTML file provides a user interface for creating, reading, updating, and deleting car park data.
-Author: Laura Lyons -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,9 +37,8 @@ Author: Laura Lyons -->
 <body>
     <div class="content">
         <h1 class="text-center mb-4" style="color: rgb(199, 5, 5); ">Welcome to Cork City Parking Checker</h1>
-        <h4 class="text-center mb-4" style="color: rgb(199, 5, 5); ">Check the availability of parking spaces in Cork City car parks.</h>
-    </div>
-    <div class="content">
+        <h4 class="text-center mb-4" style="color: rgb(199, 5, 5); ">Check the availability of parking spaces in Cork City car parks.</h4>
+
         <!-- Current time display -->
         <div id="currentTimeDisplay" style="font-size: 1.2rem; color: black;">
             The time is now: <span id="currentTime"></span>
@@ -60,21 +54,36 @@ Author: Laura Lyons -->
         <div class="mt-4 alert" id="checkFreeSpaces" role="alert" style="background-color: rgb(71, 195, 85); border: 2px solid rgb(0, 12, 2); border-radius: 8px; padding: 10px;">
             <label for="checkFreeSpaces" class="form-label" style="color: rgb(0, 3, 1); display: block; margin-bottom: 5px;">Parking space availability</label>
             <span id="freeSpacesContent" style="font-size: 1rem;"></span>
-        </div>        
-
+        </div>            
+   
         <!-- Car park opening hours -->
-        <div class="mt-4 alert alert-info" id="openingHoursResult" role="alert" style="background-color: lightblue; border: 2px solid blue; border-radius: 8px; padding: 10px;">
-            <label for="openingHoursResult" class="form-label" style="color: rgb(0, 0, 11); display: block; margin-bottom: 5px;">Car park opening hours</label>
-            <!-- Dynamic opening hours content will appear here -->
-            <span id="openingHoursContent"></span>
+        <div>
+            <!-- Button to toggle opening hours -->
+            <button id="toggleOpeningHoursBtn" class="btn btn-info" style="margin-bottom: 10px;">Show Opening Hours</button>
+            
+            <!-- Opening hours container -->
+            <div class="mt-4 alert alert-info" id="openingHoursResult" role="alert" style="background-color: lightblue; border: 2px solid blue; border-radius: 8px; padding: 10px; display: none;">
+                <label class="form-label" style="color: rgb(0, 0, 11); display: block; margin-bottom: 5px; font-weight: bold; font-size: 1rem;">Car park opening hours</label>
+                <span id="openingHoursContent" style="color: rgb(0, 0, 11); display: block; margin-bottom: 5px; font-weight: bold; font-size: 1rem;">Dynamic opening hours content will appear here.</span>
+            </div>
+            
+            <!-- Error message container -->
+            <div id="carParkInfoResult" class="alert" style="margin-top: 10px;"></div>
         </div>
-
+        
         <!-- Car park height restrictions -->
-        <div class="mt-4 alert alert-danger" id="heightRestrictionNotice" role="alert" style="background-color: rgb(217, 94, 94); border: 2px solid rgb(134, 9, 9); border-radius: 8px; padding: 10px;">
-            <label for="heightRestrictionNotice" class="form-label" style="color: rgb(3, 0, 0); display: block; margin-bottom: 5px;">Height restrictions</label>
-            <!-- Content for height restrictions will go here -->
-            <span id="heightRestrictionContent"></span>
+        <div>
+            <!-- Toggle button for height restriction -->
+            <button id="toggleHeightRestrictionBtn" class="btn btn-danger" style="margin-bottom: 10px;">Car Park Height Restriction</button>
+            
+            <!-- Height restriction container -->
+            <div class="mt-4 alert alert-danger" id="heightRestrictionNotice" role="alert" style="background-color: rgb(217, 94, 94); border: 2px solid rgb(134, 9, 9); border-radius: 8px; padding: 10px; display: none;">
+                <label class="form-label" style="color: rgb(3, 0, 0); display: block; margin-bottom: 5px; font-weight: bold; font-size: 1rem;">Height restrictions</label>
+                <span id="heightRestrictionContent" style="color: rgb(3, 0, 0); display: block; margin-bottom: 5px; font-weight: bold; font-size: 1rem;">Dynamic height restriction details will appear here.</span>
+            </div>
         </div>
+        
+        
     </div>
 
     <!-- Bootstrap JS -->
@@ -187,6 +196,22 @@ Author: Laura Lyons -->
             },
         };
 
+        // Fetch parking data from the server
+        async function fetchParkingData() {
+            try {
+                const response = await fetch("/api/fetch"); // Replace "/api/fetch" with the actual endpoint of your API
+                if (!response.ok) {
+                    throw new Error(`Server Error: ${response.status} ${response.statusText}`);
+                }
+                const data = await response.json(); // Parse the JSON response
+                console.log("Fetched parking data:", data); // Debug: Log the API response
+                return data;
+            } catch (error) {
+                console.error("Error fetching parking data:", error);
+                return [];
+            }
+        }
+
         // Function to set and display the current time
         function updateCurrentTime() {
             const now = new Date(); // Get the current date and time
@@ -200,6 +225,13 @@ Author: Laura Lyons -->
         // Call the function immediately and then every second
         updateCurrentTime(); // Initialize the time display
         setInterval(updateCurrentTime, 1000); // Update every second
+
+        // Get Current Day Name
+        function getCurrentDayName() {
+            const dayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            return days[dayIndex];
+        }
 
         // Populate dropdown menu with car park options
         async function populateDropdown() {
@@ -217,22 +249,6 @@ Author: Laura Lyons -->
                 option.innerText = park.name || "Unnamed Car Park";
                 dropdown.appendChild(option);
             });
-        }
-
-        // Fetch parking data from the server
-        async function fetchParkingData() {
-            try {
-                const response = await fetch("/api/fetch"); // Replace "/api/fetch" with the actual endpoint of your API
-                if (!response.ok) {
-                    throw new Error(`Server Error: ${response.status} ${response.statusText}`);
-                }
-                const data = await response.json(); // Parse the JSON response
-                console.log("Fetched parking data:", data); // Debug: Log the API response
-                return data;
-            } catch (error) {
-                console.error("Error fetching parking data:", error);
-                return [];
-            }
         }
 
         // Check if the car park has free spaces
@@ -268,14 +284,7 @@ Author: Laura Lyons -->
             resultContainer.classList.remove("d-none");
         }
 
-        // Get Current Day Name
-        function getCurrentDayName() {
-            const dayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-            return days[dayIndex];
-        }
-
-        // Handle car park schedule and free spaces
+        // Handle car park schedule (opening hours) and free spaces
         function handleCarParkSchedule(scheduleForToday, freeSpaces, selectedOption) {
             const resultContainer = document.getElementById("carParkInfoResult");
             const now = new Date();
@@ -358,6 +367,45 @@ Author: Laura Lyons -->
             checkFreeSpaces(freeSpaces); // Pass the free spaces to the function
             displayCarParkInfo(); // Call the function to display car park info
         });
+
+        // Event listener for the toggle opening hours button
+        document.getElementById("toggleOpeningHoursBtn").addEventListener("click", function () {
+            const dropdown = document.getElementById("carParkDropdown");
+            const selectedCarPark = dropdown.value;
+            const openingHoursResult = document.getElementById("openingHoursResult");
+            const resultContainer = document.getElementById("carParkInfoResult"); // Error message container
+
+            if (!selectedCarPark) {
+                // No car park selected, show an error message
+                resultContainer.innerHTML = `<strong>Error:</strong> Please select a car park first to view opening hours.`;
+                resultContainer.className = "alert alert-danger"; // Style the error message
+                return; // Exit the function if no car park is selected
+            }
+
+            // Toggle visibility of opening hours
+            if (openingHoursResult.style.display === "none" || openingHoursResult.style.display === "") {
+                openingHoursResult.style.display = "block";
+                this.textContent = "Hide Opening Hours"; // Change button text
+            } else {
+                openingHoursResult.style.display = "none";
+                this.textContent = "Show Opening Hours"; // Change button text
+            }
+        });
+
+        // Event listener for the dropdown menu
+        document.getElementById("carParkDropdown").addEventListener("change", function () {
+            const selectedCarPark = this.value; // Get selected car park value
+            const resultContainer = document.getElementById("carParkInfoResult"); // Error message container
+
+            // Clear error message as soon as a valid car park is selected
+            if (selectedCarPark) {
+                resultContainer.innerHTML = ""; 
+                resultContainer.className = ""; // Remove any styling
+            }
+        });
+
+
+
 
     </script>
 </body>
