@@ -110,13 +110,42 @@ pip install requests
 
 **Initialize Project Structure**:
 
-WSAA-project/
-├── rest_server.py        # Main Flask application
-├── static/               # CSS and JavaScript files
-├── templates/            # HTML files for the web interface
-├── requirements.txt      # List of dependencies
-├── README.md             # Project documentation
 
+WSAA-project/
+├── rest_server.py           # Main Flask application
+├── README.md                # Documentation for your project
+├── package.json             # If you are using Node.js for dependencies
+├── server.js                # Backend server file (if applicable)
+├── .gitignore               # Git ignored files (if using Git)
+├── requirements.txt         # Python dependencies
+│
+├── templates/              # Folder for HTML
+│   ├── parking_checker.html # Main HTML file for the app
+│
+├── static/                  # Folder for static assets
+│   ├── css/                 # Folder for stylesheets
+│       ├── style.css        # Main CSS file for styling
+│   ├── images                # Images used in your project (e.g., icons, backgrounds)
+│
+├── js/                      # Folder for JavaScript files
+│   ├── script.js            # Main JavaScript file
+│   ├── carParkData.js       # JavaScript file for car park details and logic
+│
+├── data/                    # Folder for data files
+│   ├── carParkDetails.json  # JSON file for structured car park data (if applicable)
+│
+├── backend/                 # Backend-related files or logic (if using a framework like Node.js, Django, etc.)
+│   ├── routes/              # Routes for API endpoints
+│   ├── controllers/         # Logic for handling requests
+│
+├── public/                  # Public-facing files (if using a backend framework like Express.js)
+│   ├── css/                 # Stylesheets for the public
+│   ├── js/                  # JavaScript files for the public
+│   ├── images/              # Images for the public
+│
+└── tests/                   # Folder for test cases (if implementing testing)
+    ├── unit/                # Unit tests for individual functions or components
+    ├── integration/         # Tests for full system functionality
 
 ### Open in Visual Studio Code
 
@@ -146,4 +175,4 @@ Should you find any errors or have any recommendations, please submit a pull req
 
 ***
 
-### End.
+### End

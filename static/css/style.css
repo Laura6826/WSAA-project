@@ -1,0 +1,133 @@
+/* WSAA-project: Web Services and Applications.
+   REST-SERVER for car-park space availability in Cork City.
+   Author: Laura Lyons */
+
+/* General Reset */
+body {
+    background-image: url('/static/images/cork_city.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh; /* Ensures the background covers the full viewport height */
+    margin: 0; /* Removes default margin */
+}
+
+
+/* General Button Styles */
+button {
+    width: 100%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-bottom: 20px; /* Adds space between buttons */
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    border: 2px solid transparent; /* Default border style */
+}
+
+/* Specific Styles for Show Opening Hours Button */
+#toggleOpeningHoursBtn {
+    background-color: #007bff; /* Blue background */
+    color: white; /* White text */
+    border-color: #007bff; /* Blue border */
+}
+
+/* Specific Styles for Height Restriction Button */
+#toggleHeightRestrictionBtn {
+    background-color: #dc3545; /* Red background */
+    color: white; /* White text */
+    border-color: #dc3545; /* Red border */
+}
+/* Specific Styles for Check Free Spaces Button */
+#checkFreeSpaces {
+    font-weight: bold;
+    margin-bottom: 30px; /* Adds a gap below the parking space availability section */
+    background-color: rgb(71, 195, 85);
+    border: 2px solid rgb(0, 12, 2);
+    border-radius: 8px;
+    padding: 15px;
+}
+
+/* Dropdown and Label Container */
+#carParkDropdown {
+    display: inline-block; /* Ensures dropdown stays inline with the label */
+    width: auto; /* Removes excessive width */
+    padding: 8px;
+    font-size: 1rem; /* Reduces font size */
+    font-weight: bold;
+    border: 1px solid gray;
+    border-radius: 5px;
+    margin-left: 10px; /* Adds space between the label and dropdown */
+}
+
+/* Label Style */
+label {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: black;
+}
+
+/* Flexbox Container */
+.flex-container {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 50px; /* Adds more space between buttons and content */
+}
+
+/* Alerts */
+.alert {
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+/* Parking space availability */
+#checkFreeSpaces {
+    background-color: rgb(71, 195, 85);
+    border: 2px solid rgb(0, 12, 2);
+    padding: 15px;
+}
+
+/* Ensure Background Display */
+html, body {
+    height: 100%; /* Ensures background covers viewport */
+}
+
+/* Content container styling */
+.content {
+    background: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 800px;
+    margin: 50px auto; /* Centers the container */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); /* Adds subtle shadow for depth */
+}
+
+/* Ensures all child elements inside .content are styled correctly */
+.content h1, .content h4 {
+    font-weight: bold;
+    color: rgb(199, 5, 5); /* Matches the design */
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#currentTimeDisplay {
+    font-size: 1.2rem;
+    color: black;
+    font-weight: bold; /* Keep it bold */
+    margin-bottom: 20px; /* Adds spacing below */
+}
+
+/* Reset body font to Bootstrap's default font-family */
+body {
+    font-family: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+}
+
+/* Ensure other elements inherit the Bootstrap default font */
+h1, h4, label, span, button, .form-label, .alert {
+    font-family: inherit;
+}
+
