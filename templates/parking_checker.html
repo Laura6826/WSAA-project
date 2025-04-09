@@ -81,18 +81,7 @@ Author: Laura Lyons -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
 
-        // Car Park Data
-        const heightRestrictions = {
-            "Black Ash Park & Ride": 2.1,
-            "North Main Street": 2.0,
-            "City Hall - Eglington Street": 2.0,
-            "Carrolls Quay": 2.0,
-            "Saint Finbarr's": 2.0,
-            "Paul Street": 2.0,
-            "Merchants Quay": 1.98,
-            "Grand Parade": 1.85
-        };
-
+        // Car park details including height restrictions and schedules
         const carParkDetails = {
             "Black Ash Park & Ride": { 
                 height: 2.1, 
@@ -215,6 +204,7 @@ Author: Laura Lyons -->
         // Populate dropdown menu with car park options
         async function populateDropdown() {
             const parkingData = await fetchParkingData(); // Get data from the live API
+            console.log("Populating dropdown with parking data:", parkingData); // Debugging - Log the data
             const dropdown = document.getElementById("carParkDropdown");
 
             // Clear previous dropdown options
@@ -236,7 +226,7 @@ Author: Laura Lyons -->
                 if (!response.ok) {
                     throw new Error(`Server Error: ${response.status} ${response.statusText}`);
                 }
-                const data = await response.json();
+                const data = await response.json(); // Parse the JSON response
                 console.log("Fetched parking data:", data); // Debug: Log the API response
                 return data;
             } catch (error) {
@@ -246,49 +236,46 @@ Author: Laura Lyons -->
         }
 
         // Check if the car park has free spaces
-        function checkFreeSpaces() {
+        async function checkFreeSpaces() {
+            const parkingData = await fetchParkingData(); // Fetch live data
+            console.log("Fetched parking data for checking spaces:", parkingData); // Debugging - Log the data
+
             const dropdown = document.getElementById("carParkDropdown");
             const selectedOption = dropdown.options[dropdown.selectedIndex];
 
-            // Log the selected option and its data to the console
-            console.log("Selected option:", selectedOption);
-            console.log("Selected option data-freeSpaces:", selectedOption.dataset.freeSpaces);
-
-            const freeSpaces = parseInt(selectedOption.freeSpaces) || 0;
+            if (!selectedOption || !selectedOption.value) {
+                console.error("No valid selection.");
+                return;
+            }
+            const selectedCarPark = parkingData.find(park => park.name === selectedOption.value);
+            console.log("Selected car park:", selectedOption.value); // Debugging - Log the selected car park
+            console.log("Matched car park from live data:", selectedCarPark); // Debugging - Log the matched data
+            if (!selectedCarPark) {
+                console.error("Car park not found in live data.");
+                return;
+            }
+            const freeSpaces = parseInt(selectedCarPark.free_spaces) || 0;
+            console.log("Free spaces available:", freeSpaces); // Debugging - Log the free spaces
             const resultContainer = document.getElementById("checkFreeSpaces");
-
+            resultContainer.className = "alert mt-3"; // Reset classes
             if (freeSpaces > 0) {
                 resultContainer.innerText = `Yes, there are ${freeSpaces} free spaces available.`;
-                resultContainer.className = "alert alert-success mt-3"; // Ensure the alert box is visible
+                resultContainer.classList.add("alert-success");
             } else {
                 resultContainer.innerText = "No, the car park is full.";
-                resultContainer.className = "alert alert-danger mt-3"; // Ensure the alert box is visible
+                resultContainer.classList.add("alert-danger");
             }
+            resultContainer.classList.remove("d-none");
         }
-    
+
         // Get Current Day Name
         function getCurrentDayName() {
             const dayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
             const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
             return days[dayIndex];
         }
-            
-        // Function to set and display the current time
-        function setCurrentTime() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0'); // Add leading zero for hours
-            const minutes = String(now.getMinutes()).padStart(2, '0'); // Add leading zero for minutes
-            const currentTime = `${hours}:${minutes}`; // Format: HH:MM
-            document.getElementById("currentTime").innerText = currentTime; // Update the time display
-        }
 
-        // Initialize and update the current time on page load
-        window.onload = function() {
-            setCurrentTime(); // Set the current time initially
-            setInterval(setCurrentTime, 60000); // Update every minute
-        };
-
-
+        // Handle car park schedule and free spaces
         function handleCarParkSchedule(scheduleForToday, freeSpaces, selectedOption) {
             const resultContainer = document.getElementById("carParkInfoResult");
             const now = new Date();
