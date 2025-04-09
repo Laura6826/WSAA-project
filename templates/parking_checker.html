@@ -49,8 +49,8 @@
         <div id="carParkInfoResult" class="alert" style="font-size: 1.2rem; margin-top: 10px;"></div>
     </div>
 
-    <!-- Car park height restrictions -->
-    <div style="flex: 1;">
+        <!-- Car park height restrictions -->
+        <div style="flex: 1;">
         <!-- Toggle button for height restriction -->
         <button id="toggleHeightRestrictionBtn" class="btn btn-danger" style="width: 100%; font-size: 1.2rem; border: 2px solid rgb(134, 9, 9); border-radius: 8px; padding: 10px; margin-bottom: 10px;">Car Park Height Restriction</button>
         
@@ -61,7 +61,7 @@
             <span id="heightRestrictionContent" style="font-size: 1.2rem; color: rgb(3, 0, 0); display: block; margin-bottom: 5px; font-weight: bold;">Dynamic height restriction details will appear here.</span>
         </div>
     </div>
-</div>
+
     <script>
 
         // Car park details including height restrictions and schedules
@@ -338,6 +338,7 @@
         }
 
 
+
         // Initialize dropdown and attach event listener
         window.onload = function () {
             populateDropdown();
@@ -405,7 +406,6 @@
                 this.textContent = "Show Height Restriction";
             }
         });
-
 
     </script>
 </body>
