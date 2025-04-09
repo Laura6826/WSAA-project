@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify, render_template
 import requests
 import logging
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 # External API details
 API_URL = "https://data.corkcity.ie/en_GB/api/3/action/datastore_search_sql"
