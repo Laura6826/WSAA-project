@@ -110,8 +110,9 @@ pip install requests
 
 **Initialize Project Structure**:
 
-
 WSAA-project/
+
+```ruby
 ├── rest_server.py           # Main Flask application
 ├── README.md                # Documentation for your project
 ├── package.json             # If you are using Node.js for dependencies
@@ -119,13 +120,18 @@ WSAA-project/
 ├── .gitignore               # Git ignored files (if using Git)
 ├── requirements.txt         # Python dependencies
 │
+├── database/                # Folder for database files
+│   ├── carparks.sql         # SQL script for database schema and initial data
+│   ├── migrations/          # (Optional) Database migrations for changes
+│   ├── connection.config    # Database connection configuration (if applicable)
+│
 ├── templates/              # Folder for HTML
 │   ├── parking_checker.html # Main HTML file for the app
 │
 ├── static/                  # Folder for static assets
 │   ├── css/                 # Folder for stylesheets
 │       ├── style.css        # Main CSS file for styling
-│   ├── images                # Images used in your project (e.g., icons, backgrounds)
+│   ├── images               # Images used in your project (e.g., icons, backgrounds)
 │
 ├── js/                      # Folder for JavaScript files
 │   ├── script.js            # Main JavaScript file
@@ -146,6 +152,7 @@ WSAA-project/
 └── tests/                   # Folder for test cases (if implementing testing)
     ├── unit/                # Unit tests for individual functions or components
     ├── integration/         # Tests for full system functionality
+```
 
 ### Open in Visual Studio Code
 
