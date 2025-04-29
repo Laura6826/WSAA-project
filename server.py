@@ -3,6 +3,8 @@ import requests
 import logging
 from dao.car_parks_dao import CarParksDAO
 from dao.opening_hours_dao import OpeningHoursDAO
+from schemas import CarParkSchema
+from marshmallow import ValidationError
 
 app = Flask(__name__, static_folder='static')
 
@@ -41,7 +43,6 @@ def fetch_parking_data():
         return jsonify({"error": str(e)}), 500
 
 # CRUD operations for Car Parks
-
 # Fetch all car parks
 @app.route('/api/car-parks', methods=['GET'])
 def fetch_all_car_parks():
@@ -52,24 +53,12 @@ def fetch_all_car_parks():
         logging.error(f"Error fetching car parks: {e}")
         return jsonify({"error": str(e)}), 500
 
-# Fetch a specific car park by ID
-@app.route('/api/car-parks/<int:car_park_id>', methods=['GET'])
-def fetch_car_park_by_id(car_park_id):
-    try:
-        car_park = car_parks_dao.find_car_park_by_id(car_park_id)
-        if car_park:
-            return jsonify(car_park), 200
-        else:
-            return jsonify({"error": "Car park not found"}), 404
-    except Exception as e:
-        logging.error(f"Error fetching car park: {e}")
-        return jsonify({"error": str(e)}), 500
-
 # Create a new car park
 # curl -X POST -H "Content-Type: application/json" -d '{"name": "Test Car Park", "height": 2.5}' http://127.0.0.1:5000/api/car-parks
 @app.route('/api/car-parks', methods=['POST'])
 def create_car_park():
     try:
+        # Load and validate incoming data
         data = request.json
         name = data.get("name")
         height = data.get("height")
@@ -89,25 +78,38 @@ def create_car_park():
 
 # Update a car park
 # curl -X PUT -H "Content-Type: application/json" -d '{"name": "Updated Car Park", "height": 3.0}' http://127.0.0.1:5000/api/car-parks/1
-@app.route('/api/car-parks/<int:car_park_id>', methods=['PUT'])
-def update_car_park(car_park_id):
+@app.route('/api/car-parks', methods=['POST'])
+def create_car_park():
     try:
+        # Load and validate incoming data
         data = request.json
-        name = data.get("name")
-        height = data.get("height")
+        schema = CarParkSchema()
+        validated_data = schema.load(data)  # Validates and deserializes the input
+        
+        # Extract data
+        name = validated_data.get("name")
+        height = validated_data.get("height")
+        opening_hours = validated_data.get("opening_hours")
+        
+        # Save car park to database
+        car_park_id = car_parks_dao.create_car_park(name, height)
+        
+        # Save opening hours to database
+        for hours in opening_hours:
+            opening_hours_dao.add_opening_hours(
+                car_park_id, hours["day"], hours["opening_time"], hours["closing_time"], hours.get("status")
+            )
+        
+        return jsonify({"message": "Car park created successfully"}), 201
 
-        # Validate input
-        if not name or not height:
-            return jsonify({"error": "Name and height are required"}), 400
-
-        result = car_parks_dao.update_car_park(car_park_id, name, height)
-        if result:
-            return jsonify({"message": "Car park updated successfully"}), 200
-        else:
-            return jsonify({"error": "Car park not found"}), 404
+    except ValidationError as err:
+        # Return validation errors
+        return jsonify({"errors": err.messages}), 400
     except Exception as e:
-        logging.error(f"Error updating car park: {e}")
+        # Handle other exceptions
+        logging.error(f"Error creating car park: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 # Delete a car park
 # curl -X DELETE http://127.0.0.1:5000/api/car-parks/1
@@ -164,24 +166,33 @@ def add_opening_hours():
 @app.route('/api/opening-hours/<int:opening_hours_id>', methods=['PUT'])
 def update_opening_hours(opening_hours_id):
     try:
+        # Load and validate incoming data
         data = request.json
-        day = data.get("day")
-        opening_time = data.get("opening_time")
-        closing_time = data.get("closing_time")
-        status = data.get("status")
-
-        # Validate input
-        if not day or not (opening_time or closing_time or status):
-            return jsonify({"error": "All fields are required"}), 400
-
-        result = opening_hours_dao.update_opening_hours(opening_hours_id, day, opening_time, closing_time, status)
+        schema = OpeningHoursSchema()
+        validated_data = schema.load(data)
+        
+        # Extract data
+        day = validated_data["day"]
+        opening_time = validated_data["opening_time"]
+        closing_time = validated_data["closing_time"]
+        status = validated_data.get("status")
+        
+        # Update in database
+        result = opening_hours_dao.update_opening_hours(
+            opening_hours_id, day, opening_time, closing_time, status
+        )
         if result:
             return jsonify({"message": "Opening hours updated successfully"}), 200
         else:
             return jsonify({"error": "Opening hours not found"}), 404
+
+    except ValidationError as err:
+        # Return validation errors
+        return jsonify({"errors": err.messages}), 400
     except Exception as e:
         logging.error(f"Error updating opening hours: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 # Delete opening hours for a car park
 # curl -X DELETE http://127.0.0.1:5000/api/opening-hours/1

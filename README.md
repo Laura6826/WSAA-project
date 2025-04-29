@@ -102,6 +102,7 @@ pip install -r requirements.txt
 pip install flask 
 pip install flask_sqlalchemy
 pip install requests
+
 ```
 
 - Flask is essential for building your RESTful API, SQLAlchemy for database interaction and Requests for fetching external API data:
@@ -124,6 +125,10 @@ WSAA-project/
 │   ├── carparks.sql         # SQL script for database schema and initial data
 │   ├── migrations/          # (Optional) Database migrations for changes
 │   ├── connection.config    # Database connection configuration (if applicable)
+│
+├── schema/                  # Folder for storing the database schemas
+│   ├── car_park_scheme.py   # SQL script for database schema and initial data
+│   ├── opening_hours_scheme.py # (Optional) Database migrations for changes
 │
 ├── templates/              # Folder for HTML
 │   ├── parking_checker.html # Main HTML file for the app
