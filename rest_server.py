@@ -3,6 +3,8 @@
 # Author: Laura Lyons
 
 from flask import Flask, request, jsonify, render_template
+from schemas.car_park_schema import CarParkSchema
+from schemas.opening_hours_schema import OpeningHoursSchema
 import requests
 import logging
 

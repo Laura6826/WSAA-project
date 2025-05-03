@@ -26,8 +26,9 @@
         </div>
 
         <!-- Car park space availability -->
-        <div class="mt-4 alert" id="checkFreeSpaces" role="alert" style="font-size: 1.2rem; background-color: rgb(71, 195, 85); border: 2px solid rgb(0, 12, 2); border-radius: 8px; padding: 10px;">
+        <div style="text-align: center;" class="mt-4 alert" id="checkFreeSpaces" role="alert" style="font-size: 1.2rem; background-color: rgb(71, 195, 85); border: 2px solid rgb(0, 12, 2); border-radius: 8px; padding: 10px;">
             <label for="checkFreeSpaces" class="form-label" style="color: rgb(0, 3, 1); display: block; margin-bottom: 5px;">Parking space availability</label>
+            <label for="carParkDropdown" class="form-label" style=" font-size: small; color: black; " >(Only available for verified carparks) </label>
             <span id="freeSpacesContent" style="font-size: 1rem;"></span>
         </div>            
         
@@ -85,8 +86,8 @@
                 Add Car Park
             </button>
         </div>
+    </div>
     <script>
-
         // Car park details including height restrictions and schedules
         const carParkDetails = {
             "Black Ash Park & Ride": { 

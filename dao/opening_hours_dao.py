@@ -2,90 +2,98 @@
 # DAO (Data Access Object) for the car park opening hours data.
 # Author: Laura Lyons
 
-import mysql.connector
+import logging
+from mysql.connector import connect
 import dbconfig as cfg
 
+logging.basicConfig(level=logging.ERROR)
+
 class OpeningHoursDAO:
-    def __init__(self):
-        self.connection = None
-        self.cursor = None
+    # DAO for managing opening hours in the database.
 
-    def connect(self):
-        self.connection = mysql.connector.connect(
-            host=cfg.mysql["host"],
-            user=cfg.mysql["user"],
-            password=cfg.mysql["password"],
-            database=cfg.mysql["database"],
-            port=cfg.mysql.get("port", 3306)  # Default port is 3306
-        )
-        self.cursor = self.connection.cursor(dictionary=True)
+    def execute_query(self, sql, params=None, fetch=False):
+        try:
+            with connect(
+                host=cfg.mysql["host"],
+                user=cfg.mysql["user"],
+                password=cfg.mysql["password"],
+                database=cfg.mysql["database"],
+                port=cfg.mysql.get("port", 3306),
+            ) as connection:
+                with connection.cursor(dictionary=True) as cursor:
+                    cursor.execute(sql, params or ())
+                    if fetch:
+                        return cursor.fetchall()
+                    connection.commit()
+                    return True
+        except mysql.connector.Error as e:
+            logging.error("Database error: %s", e)
+            return False if not fetch else None
 
-    def close(self):
-        if self.cursor:
-            self.cursor.close()
-        if self.connection:
-            self.connection.close()
-
-    # Create new opening hours entry
     def add_opening_hours(self, car_park_id, day, opening_time, closing_time, status):
-        try:
-            self.connect()
-            sql = """
-                INSERT INTO OpeningHours (car_park_id, day, opening_time, closing_time, status)
-                VALUES (%s, %s, %s, %s, %s)
-            """
-            self.cursor.execute(sql, (car_park_id, day, opening_time, closing_time, status))
-            self.connection.commit()
-            self.close()
-            return True  # Indicate success
-        except Exception as e:
-            print(f"Error adding opening hours: {e}")
-            self.close()
-            return False
+        """
+        Adds new opening hours for a car park.
 
-    # Read all opening hours for a specific car park
+        Args:
+            car_park_id (int): ID of the car park.
+            day (str): Day of the week.
+            opening_time (str): Opening time (HH:MM format).
+            closing_time (str): Closing time (HH:MM format).
+            status (str): Status (e.g., Open/Closed).
+
+        Returns:
+            bool: True if added successfully, False otherwise.
+        """
+        sql = """
+            INSERT INTO OpeningHours (car_park_id, day, opening_time, closing_time, status)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        return self.execute_query(sql, (car_park_id, day, opening_time, closing_time, status))
+
     def get_opening_hours_for_car_park(self, car_park_id):
-        try:
-            self.connect()
-            sql = "SELECT * FROM OpeningHours WHERE car_park_id = %s"
-            self.cursor.execute(sql, (car_park_id,))
-            results = self.cursor.fetchall()
-            self.close()
-            return results
-        except Exception as e:
-            print(f"Error fetching opening hours: {e}")
-            self.close()
-            return None
+        """
+        Retrieves opening hours for a specific car park.
 
-    # Update existing opening hours entry
+        Args:
+            car_park_id (int): ID of the car park.
+
+        Returns:
+            list | None: List of opening hours or None if an error occurs.
+        """
+        sql = "SELECT * FROM OpeningHours WHERE car_park_id = %s"
+        return self.execute_query(sql, (car_park_id,), fetch=True)
+
     def update_opening_hours(self, opening_hours_id, day, opening_time, closing_time, status):
-        try:
-            self.connect()
-            sql = """
-                UPDATE OpeningHours
-                SET day = %s, opening_time = %s, closing_time = %s, status = %s
-                WHERE id = %s
-            """
-            self.cursor.execute(sql, (day, opening_time, closing_time, status, opening_hours_id))
-            self.connection.commit()
-            self.close()
-            return True  # Indicate success
-        except Exception as e:
-            print(f"Error updating opening hours: {e}")
-            self.close()
-            return False
+        """
+        Updates existing opening hours entry.
 
-    # Delete opening hours entry by ID
+        Args:
+            opening_hours_id (int): ID of the opening hours entry.
+            day (str): Day of the week.
+            opening_time (str): Updated opening time.
+            closing_time (str): Updated closing time.
+            status (str): Updated status.
+
+        Returns:
+            bool: True if updated successfully, False otherwise.
+        """
+        sql = """
+            UPDATE OpeningHours
+            SET day = %s, opening_time = %s, closing_time = %s, status = %s
+            WHERE id = %s
+        """
+        return self.execute_query(sql, (day, opening_time, closing_time, status, opening_hours_id))
+
     def delete_opening_hours(self, opening_hours_id):
-        try:
-            self.connect()
-            sql = "DELETE FROM OpeningHours WHERE id = %s"
-            self.cursor.execute(sql, (opening_hours_id,))
-            self.connection.commit()
-            self.close()
-            return True  # Indicate success
-        except Exception as e:
-            print(f"Error deleting opening hours: {e}")
-            self.close()
-            return False
+        """
+        Deletes an opening hours entry by ID.
+
+        Args:
+            opening_hours_id (int): ID of the opening hours entry.
+
+        Returns:
+            bool: True if deleted successfully, False otherwise.
+        """
+        sql = "DELETE FROM OpeningHours WHERE id = %s"
+        return self.execute_query(sql, (opening_hours_id,))
 
