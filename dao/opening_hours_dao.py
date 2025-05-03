@@ -3,6 +3,7 @@
 # Author: Laura Lyons
 
 import logging
+import mysql
 from mysql.connector import connect
 import dbconfig as cfg
 
@@ -12,6 +13,17 @@ class OpeningHoursDAO:
     # DAO for managing opening hours in the database.
 
     def execute_query(self, sql, params=None, fetch=False):
+        """
+        Executes an SQL query within a managed MySQL connection.
+
+        Args:
+            sql (str): The SQL query to be executed.
+            params (tuple, optional): Query parameters for the SQL execution. Defaults to None.
+            fetch (bool, optional): Whether to fetch results (True) or commit changes (False).
+
+        Returns:
+            list | bool: Query results if fetch=True, otherwise True/False indicating success.
+        """
         try:
             with connect(
                 host=cfg.mysql["host"],
