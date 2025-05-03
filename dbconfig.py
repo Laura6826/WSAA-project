@@ -6,5 +6,6 @@ mysql = {
     'host':"localhost",
     'user':"root",
     'password':"",
-    'database':"carparks"
+    'database':"carparks",
+    'port': 3306
 }

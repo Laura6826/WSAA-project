@@ -6,22 +6,22 @@ Reference: https://marshmallow.readthedocs.io/en/latest/
 
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow import fields, validate, post_load
-from car_park import CarPark 
-from openinghours import OpeningHours  # Ensure these imports are correct based on your project structure
+from models.car_park import CarPark  # Corrected import path
+from models.openinghours import OpeningHours  # Matches database table name
 
 class OpeningHoursSchema(SQLAlchemyAutoSchema):
     """Schema for car park opening hours."""
     class Meta:
-        model = OpeningHours  # Ensures correct mapping
+        model = OpeningHours  # Ensures proper mapping to 'openinghours' table
         load_instance = True
 
     day = fields.Str(required=True)
-    opening_time = fields.Str(
+    opening_time = fields.Time(
         required=True,
-        validate=validate.Regexp(r"^([0-1]\d|2[0-3]):([0-5]\d)$"))
-    closing_time = fields.Str(
+        validate=validate.Regexp(r"^([0-1]\d|2[0-3]):([0-5]\d)$"))  # Uses Time format
+    closing_time = fields.Time(
         required=True,
-        validate=validate.Regexp(r"^([0-1]\d|2[0-3]):([0-5]\d)$"))
+        validate=validate.Regexp(r"^([0-1]\d|2[0-3]):([0-5]\d)$"))  # Matches DB structure
     status = fields.Str(required=False)
 
     @post_load
@@ -30,10 +30,11 @@ class OpeningHoursSchema(SQLAlchemyAutoSchema):
             data["status"] = "Open"
         return data
 
+
 class CarParkSchema(SQLAlchemyAutoSchema):
     """Schema for car park records."""
     class Meta:
-        model = CarPark  # Ensures correct table mapping
+        model = CarPark  # Maps to 'carparkdetails' table
         load_instance = True
 
     name = fields.Str(required=True)
@@ -41,5 +42,6 @@ class CarParkSchema(SQLAlchemyAutoSchema):
     opening_hours = fields.List(
         fields.Nested(OpeningHoursSchema),
         required=True,
-        validate=validate.Length(min=1)  # Ensures at least one entry
+        validate=validate.Length(min=1)  # Ensures at least one entry exists
     )
+

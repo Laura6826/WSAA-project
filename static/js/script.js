@@ -3,9 +3,27 @@
 // Author: Laura Lyons
 
 document.addEventListener("DOMContentLoaded", async function () {
-    await populateDropdown(); // Ensure dropdown populates on page load
+    await populateDropdown(); // Populate dropdown with any existing local data
     updateCurrentTime();
     setInterval(updateCurrentTime, 1000);
+
+    // Fetch latest parking availability from Flask API
+    try {
+        const response = await fetch("/api/car-parks");
+        const data = await response.json();
+
+        const dropdown = document.getElementById("carParkDropdown");
+        dropdown.innerHTML = ""; // Clear previous data
+
+        data.forEach(carPark => {
+            const option = document.createElement("option");
+            option.value = carPark.id;
+            option.textContent = carPark.name;
+            dropdown.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error fetching car parks:", error);
+    }
 });
 
 // Function to update the current time dynamically

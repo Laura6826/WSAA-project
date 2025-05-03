@@ -1,77 +1,96 @@
 from flask import Flask, request, jsonify, render_template
+from marshmallow import ValidationError
 import requests
 import logging
 from dao.car_parks_dao import CarParksDAO
 from dao.opening_hours_dao import OpeningHoursDAO
 from dao.live_spaces_dao import LiveSpacesDAO
-from marshmallow import ValidationError
-from schema.schema import CarParkSchema, OpeningHoursSchema  
-from dao.live_spaces_dao import LiveSpacesDAO
+from schema.schema import CarParkSchema, OpeningHoursSchema
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_folder="static")
 
 # DAO instances
 car_parks_dao = CarParksDAO()
 opening_hours_dao = OpeningHoursDAO()
 live_spaces_dao = LiveSpacesDAO()
 
-# External API details
-API_URL = "https://data.corkcity.ie/en_GB/api/3/action/datastore_search_sql"
-RESOURCE_ID = "f4677dac-bb30-412e-95a8-d3c22134e3c0"
+if not car_parks_dao:
+    raise RuntimeError("❌ CarParksDAO is missing! Ensure it is properly initialized.")
+
+if not car_parks_dao:
+    logging.error("❌ CarParksDAO is missing!")
+    raise RuntimeError("DAO objects not initialized correctly.")
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Root endpoint
 # Check if the API is reachable; http://127.0.0.1:5000/
+@app.route("/")
+def home():
+    return "🚀 Flask is running!"
 
-@app.route('/')
-def index():
-    logging.debug("Serving the Parking Checker HTML file.")
-    return render_template('parking_checker2.html')
-
-# Existing API: Fetch live parking data
-# curl -X GET http://127.0.0.1:5000/api/fetch
-
+# API endpoint to fetch live parking availability
+# Check if the API is reachable; http://
 @app.route('/api/parking-availability', methods=['GET'])
 def fetch_parking_availability():
     try:
-        logging.debug("API request received at /api/parking-availability")
-        
-        # Ensure RESOURCE_ID and API_URL exist
+        logging.debug("✅ API request received at /api/parking-availability")
+
+        # Validate DAOs exist before proceeding
+        if not car_parks_dao or not opening_hours_dao:
+            logging.error("❌ DAO objects are missing! Ensure they are initialized properly.")
+            return jsonify({"error": "Server misconfiguration"}), 500
+
+        # Define API details
         local_resource_id = "car_parks"  
-        API_URL = "https://your-api-url.com/data"
+        API_URL = "https://data.corkcity.ie/en_GB/api/3/action/datastore_search_sql"
+        RESOURCE_ID = "f4677dac-bb30-412e-95a8-d3c22134e3c0"
 
-        # Fetch live space availability
-        params = {"sql": "SELECT * FROM %s" % local_resource_id}  
-        response = requests.get(API_URL, params=params, timeout=10)
-        response.raise_for_status()
-        live_data = response.json().get("result", {}).get("records", [])
+        # Ensure API_URL is correctly formatted
+        if not API_URL.startswith("https://"):
+            logging.error("❌ Invalid API URL format.")
+            return jsonify({"error": "API configuration error"}), 500
 
-        logging.debug("Live parking data retrieved: %s", live_data) 
-        # Fetch car park details (height & opening hours) from MySQL
+        # Fetch live parking data safely
+        params = {"sql": f"SELECT * FROM {local_resource_id}"}  
+        try:
+            response = requests.get(API_URL, params=params, timeout=10)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logging.error(f"❌ API request failed: {e}")
+            return jsonify({"error": "Failed to retrieve live parking data"}), 500
+
+        # Validate JSON response before accessing
+        try:
+            live_data = response.json().get("result", {}).get("records", [])
+        except requests.exceptions.JSONDecodeError:
+            logging.error("❌ API returned invalid JSON format.")
+            return jsonify({"error": "Invalid JSON received from API"}), 500
+
+        logging.debug(f"✅ Successfully retrieved {len(live_data)} live parking records.")
+
+        # Fetch additional car park details from MySQL
         car_parks = car_parks_dao.get_all_car_parks()
         opening_hours = opening_hours_dao.get_all_opening_hours()
 
-        # Merge results correctly
+        logging.debug(f"✅ Fetched {len(car_parks)} stored car parks from database.")
+
+        # Merge live spaces & opening hours into car parks
         for car_park in car_parks:
             car_park["live_spaces"] = next(
                 (data for data in live_data if data.get("id") == car_park.get("id")), {}
             )
-
-            # Retrieve opening hours correctly
             car_park["opening_hours"] = next(
                 (hours for hours in opening_hours if hours.get("car_park_id") == car_park.get("id")), {}
             )
 
-        logging.debug("Merged parking data: %s", car_parks)  
+        logging.debug("✅ Successfully merged parking data.")
 
-        return jsonify(car_parks), 200  # Fix return variable
-    except requests.exceptions.RequestException as e:
-        logging.error("Failed to fetch live parking data: %s", e) 
-        return jsonify({"error": "Failed to retrieve live parking data"}), 500
+        return jsonify(car_parks), 200
+
     except Exception as e:
-        logging.error("Unexpected error in fetch_parking_availability: %s", e)  
+        logging.error(f"❌ Unexpected error in fetch_parking_availability: {e}")
         return jsonify({"error": str(e)}), 500
 
 # CRUD operations for Car Parks
@@ -80,13 +99,19 @@ def fetch_parking_availability():
 
 @app.route('/api/car-parks', methods=['GET'])
 def fetch_all_car_parks():
-    logging.debug("API request received at /api/car-parks")
+    logging.debug("Fetching car parks from MySQL...")
     
-    car_parks = car_parks_dao.get_all_car_parks()
-    schema = CarParkSchema(many=True)
+    car_parks = car_parks_dao.get_all_car_parks()  # DB stored parks
+    live_spaces_data = live_spaces_dao.fetch_live_spaces()  # API fetched spaces
 
-    logging.debug("Serialized car park data: %s", schema.dump(car_parks)) 
-    return jsonify(schema.dump(car_parks)), 200  
+    # Merge live spaces into car park details
+    for car_park in car_parks:
+        car_park["live_spaces"] = next(
+            (data for data in live_spaces_data if data["id"] == car_park["id"]), {}
+        )
+
+    return jsonify(car_parks), 200
+
 
 # Create a new car park
 # curl -X POST -H "Content-Type: application/json" -d '{"name": "Test Car
@@ -279,5 +304,6 @@ def delete_opening_hours(opening_hours_id):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    print("Registered Routes:", app.url_map)
     logging.debug("Starting the Flask server...")
     app.run(debug=True)

@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 class CarPark(Base):
-    """Database model for car parks, mapping to the 'carparkdetails' table."""
+    """Database model for car park records."""
     __tablename__ = "carparkdetails"  # ✅ Matches MySQL table name
 
     id = Column(Integer, primary_key=True, autoincrement=True)
