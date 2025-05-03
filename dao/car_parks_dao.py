@@ -16,7 +16,7 @@ class CarParksDAO:
             user=cfg.mysql["user"],
             password=cfg.mysql["password"],
             database=cfg.mysql["database"],
-            port=cfg.mysql.get("port", 3306)  # Default port is 3306
+            port=cfg.mysql.get("port", 3306) 
         )
         self.cursor = self.connection.cursor(dictionary=True)
 
