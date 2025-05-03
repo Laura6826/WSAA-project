@@ -2,97 +2,67 @@
 # DAO (Data Access Object) for the car park height restriction data.
 # Author: Laura Lyons
 
-import mysql.connector
+import logging
+from mysql.connector import connect, Error
 import dbconfig as cfg
 
+logging.basicConfig(level=logging.ERROR)
+
 class CarParksDAO:
-    def __init__(self):
-        self.connection = None
-        self.cursor = None
+    """DAO for managing car park records in the database."""
 
-    def connect(self):
-        self.connection = mysql.connector.connect(
-            host=cfg.mysql["host"],
-            user=cfg.mysql["user"],
-            password=cfg.mysql["password"],
-            database=cfg.mysql["database"],
-            port=cfg.mysql.get("port", 3306) 
-        )
-        self.cursor = self.connection.cursor(dictionary=True)
+    def execute_query(self, sql, params=None, fetch=False):
+        """
+        Executes an SQL query with a managed connection.
 
-    def close(self):
-        if self.cursor:
-            self.cursor.close()
-        if self.connection:
-            self.connection.close()
+        Args:
+            sql (str): SQL query to be executed.
+            params (tuple, optional): Query parameters. Defaults to None.
+            fetch (bool, optional): Whether to fetch results (True) or commit changes (False).
 
-    # Create a new car park
+        Returns:
+            list | bool: Query results if fetch=True, otherwise True/False indicating success.
+        """
+        try:
+            with connect(
+                host=cfg.mysql["host"],
+                user=cfg.mysql["user"],
+                password=cfg.mysql["password"],
+                database=cfg.mysql["database"],
+                port=cfg.mysql.get("port", 3306),
+            ) as connection:
+                with connection.cursor(dictionary=True) as cursor:
+                    cursor.execute(sql, params or ())
+                    if fetch:
+                        return cursor.fetchall()
+                    connection.commit()
+                    return True
+        except Error as e:
+            logging.error("Database error: %s", e)
+            return False if not fetch else None
+
     def create_car_park(self, name, height):
-        try:
-            self.connect()
-            sql = "INSERT INTO CarParks (name, height) VALUES (%s, %s)"
-            self.cursor.execute(sql, (name, height))
-            self.connection.commit()
-            self.close()
-            return True  # Indicate success
-        except Exception as e:
-            print(f"Error creating car park: {e}")
-            self.close()
-            return False
+        """Creates a new car park."""
+        sql = "INSERT INTO CarParks (name, height) VALUES (%s, %s)"
+        return self.execute_query(sql, (name, height))
 
-    # Read all car parks
     def get_all_car_parks(self):
-        try:
-            self.connect()
-            sql = "SELECT * FROM CarParks"
-            self.cursor.execute(sql)
-            results = self.cursor.fetchall()
-            self.close()
-            return results
-        except Exception as e:
-            print(f"Error fetching car parks: {e}")
-            self.close()
-            return None
+        """Retrieves all car parks."""
+        sql = "SELECT * FROM CarParks"
+        return self.execute_query(sql, fetch=True)
 
-    # Read a car park by ID
-    def find_car_park_by_id(self, car_park_id):
-        try:
-            self.connect()
-            sql = "SELECT * FROM CarParks WHERE id = %s"
-            self.cursor.execute(sql, (car_park_id,))
-            result = self.cursor.fetchone()
-            self.close()
-            return result
-        except Exception as e:
-            print(f"Error fetching car park by ID: {e}")
-            self.close()
-            return None
+    def get_car_park_by_id(self, car_park_id):
+        """Retrieves a car park by ID."""
+        sql = "SELECT * FROM CarParks WHERE id = %s"
+        return self.execute_query(sql, (car_park_id,), fetch=True)
 
-    # Update an existing car park
     def update_car_park(self, car_park_id, name, height):
-        try:
-            self.connect()
-            sql = "UPDATE CarParks SET name = %s, height = %s WHERE id = %s"
-            self.cursor.execute(sql, (name, height, car_park_id))
-            self.connection.commit()
-            self.close()
-            return True  # Indicate success
-        except Exception as e:
-            print(f"Error updating car park: {e}")
-            self.close()
-            return False
+        """Updates an existing car park."""
+        sql = "UPDATE CarParks SET name = %s, height = %s WHERE id = %s"
+        return self.execute_query(sql, (name, height, car_park_id))
 
-    # Delete a car park by ID
     def delete_car_park(self, car_park_id):
-        try:
-            self.connect()
-            sql = "DELETE FROM CarParks WHERE id = %s"
-            self.cursor.execute(sql, (car_park_id,))
-            self.connection.commit()
-            self.close()
-            return True  # Indicate success
-        except Exception as e:
-            print(f"Error deleting car park: {e}")
-            self.close()
-            return False
+        """Deletes a car park by ID."""
+        sql = "DELETE FROM CarParks WHERE id = %s"
+        return self.execute_query(sql, (car_park_id,))
 

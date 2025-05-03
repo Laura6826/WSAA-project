@@ -3,10 +3,8 @@ import requests
 import logging
 from dao.car_parks_dao import CarParksDAO
 from dao.opening_hours_dao import OpeningHoursDAO
-from schema.schema import CarParkSchema, OpeningHoursSchema
 from marshmallow import ValidationError
 from dao.live_spaces_dao import LiveSpacesDAO
-
 
 app = Flask(__name__, static_folder='static')
 
@@ -28,7 +26,7 @@ logging.basicConfig(level=logging.DEBUG)
 @app.route('/')
 def index():
     logging.debug("Serving the Parking Checker HTML file.")
-    return render_template('parking_checker.html')
+    return render_template('parking_checker2.html')
 
 # Existing API: Fetch live parking data
 # curl -X GET http://127.0.0.1:5000/api/fetch

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script defer src="/static/js/script.js"></script>
+</head>
+<body>
+    <div class="content">
+        <h1 class="text-center text-danger">Welcome to Cork City Parking Checker</h1>
+        <h4 class="text-center text-danger">Check the availability of parking spaces in Cork City car parks.</h4>
+
+        <!-- Current time display -->
+        <div class="text-center mt-3">
+            <strong>The current time is:</strong> <span id="currentTime"></span>
+        </div>        
+
+        <!-- Car park selection dropdown -->
+        <div class="mt-4">
+            <label for="carParkDropdown" class="form-label">Select Car Park to check availability:</label>
+            <select id="carParkDropdown" class="form-select"></select>
+            <button class="btn btn-success mt-2" onclick="checkFreeSpaces()">Check Availability</button>
+        </div>
+
+        <!-- Free space availability -->
+        <div id="checkFreeSpaces" class="alert mt-3 d-none"></div>            
+
+        <!-- Container for side-by-side buttons -->
+        <div class="d-flex gap-3 mt-4">
+            <!-- Car park opening hours -->
+            <div class="flex-fill">
+                <button id="toggleOpeningHoursBtn" class="btn btn-info w-100">Show Opening Hours</button>
+                <div class="alert alert-info mt-3 d-none" id="openingHoursResult">
+                    <strong>Car Park Opening Hours:</strong>
+                    <span id="openingHoursContent">Dynamic content will appear here.</span>
+                </div>
+            </div>
+
+            <!-- Height restrictions -->
+            <div class="flex-fill">
+                <button id="toggleHeightRestrictionBtn" class="btn btn-danger w-100">Car Park Height Restriction</button>
+                <div class="alert alert-danger mt-3 d-none" id="heightRestrictionNotice">
+                    <strong>Height Restrictions:</strong>
+                    <span id="heightRestrictionContent">Dynamic height restriction details will appear here.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Car Parks Section -->
+        <div class="mt-4">
+            <h4>Manage Car Parks</h4>
+            <div class="d-flex gap-3">
+                <input type="text" id="newCarParkName" placeholder="Car Park Name" class="form-control">
+                <button class="btn btn-primary" onclick="addCarPark()">Add Car Park</button>
+            </div>
+
+            <div class="d-flex gap-3 mt-3">
+                <select id="updateCarParkDropdown" class="form-select"></select>
+                <input type="text" id="updateCarParkName" placeholder="New Name" class="form-control">
+                <button class="btn btn-warning" onclick="updateCarPark()">Update Car Park</button>
+            </div>
+
+            <div class="d-flex gap-3 mt-3">
+                <select id="deleteCarParkDropdown" class="form-select"></select>
+                <button class="btn btn-danger" onclick="deleteCarPark()">Delete Car Park</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

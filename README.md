@@ -114,21 +114,18 @@ pip install requests
 WSAA-project/
 
 ```ruby
-├── rest_server.py           # Main Flask application
+├── server.py           # Main Flask application
 ├── README.md                # Documentation for your project
 ├── package.json             # If you are using Node.js for dependencies
-├── server.js                # Backend server file (if applicable)
+├── server.js               # Backend server file (if applicable)
 ├── .gitignore               # Git ignored files (if using Git)
 ├── requirements.txt         # Python dependencies
 │
 ├── database/                # Folder for database files
 │   ├── carparks.sql         # SQL script for database schema and initial data
-│   ├── migrations/          # (Optional) Database migrations for changes
-│   ├── connection.config    # Database connection configuration (if applicable)
 │
 ├── schema/                  # Folder for storing the database schemas
-│   ├── car_park_scheme.py   # SQL script for database schema and initial data
-│   ├── opening_hours_scheme.py # (Optional) Database migrations for changes
+│   ├── schema.py            # SQL script for the car park and opening hours databases
 │
 ├── templates/              # Folder for HTML
 │   ├── parking_checker.html # Main HTML file for the app
@@ -153,10 +150,7 @@ WSAA-project/
 │   ├── css/                 # Stylesheets for the public
 │   ├── js/                  # JavaScript files for the public
 │   ├── images/              # Images for the public
-│
-└── tests/                   # Folder for test cases (if implementing testing)
-    ├── unit/                # Unit tests for individual functions or components
-    ├── integration/         # Tests for full system functionality
+
 ```
 
 ### Open in Visual Studio Code
