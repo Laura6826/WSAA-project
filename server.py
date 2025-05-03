@@ -42,14 +42,20 @@ def fetch_parking_availability():
 
         # Fetch car park details (height & opening hours) from MySQL
         car_parks = car_parks_dao.get_all_car_parks()
-        opening_hours = opening_hours_dao.get_all_car_parks()
+        opening_hours = opening_hours_dao.get_opening_hours_for_car_park()
 
         # Merge results
         for car_park in car_parks:
             car_park["live_spaces"] = next(
-                (data for data in live_data if data["id"] == car_park["id"]), None)
-            car_park["opening_hours"] = next(
-                (hours for hours in opening_hours if hours["car_park_id"] == car_park["id"]), None)
+                (data for data in live_data if data["id"] == car_park["id"]), {}
+            )
+            # Retrieve opening hours for the specific car park
+            car_park_opening_hours = opening_hours_dao.get_opening_hours_for_car_park(car_park["id"])
+
+            # Ensure data is merged correctly without overwriting previous values
+            car_park["opening_hours"] = car_park_opening_hours if car_park_opening_hours else next(
+                (hours for hours in opening_hours if hours["car_park_id"] == car_park["id"]), {}
+            )
 
         return jsonify(car_parks), 200
 
@@ -59,14 +65,15 @@ def fetch_parking_availability():
 
 # CRUD operations for Car Parks
 # Fetch all car parks
-
+# curl -X GET http://
 @app.route('/api/car-parks', methods=['GET'])
 def fetch_all_car_parks():
     try:
         car_parks = car_parks_dao.get_all_car_parks()
+        logging.debug(f"✅ Retrieved car parks from database: {car_parks}")  # Debugging step
         return jsonify(car_parks), 200
     except Exception as e:
-        logging.error(f"Error fetching car parks: {e}")
+        logging.error(f"❌ Error fetching car parks: {e}")
         return jsonify({"error": str(e)}), 500
 
 # Create a new car park

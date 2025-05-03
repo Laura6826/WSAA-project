@@ -34,12 +34,37 @@ function fetchCarParks() {
     fetch("/api/car-parks")
         .then(response => response.json())
         .then(data => {
+            console.log("✅ API response received:", data); // Debugging step
+            document.getElementById("debugOutput").innerText = JSON.stringify(data, null, 2); // ✅ Show API data on the webpage
             populateDropdown("carParkDropdown", data);
             populateDropdown("updateCarParkDropdown", data);
             populateDropdown("deleteCarParkDropdown", data);
         })
-        .catch(error => console.error("Error fetching car parks:", error));
+        .catch(error => {
+            console.error("❌ Error fetching car parks:", error);
+            document.getElementById("debugOutput").innerText = "❌ Error fetching car parks: " + error; // ✅ Show errors on the webpage
+        });
 }
+
+// Initial fetch to populate dropdowns
+async function fetchParkingData() {
+    return fetch("/api/car-parks")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`❌ Server Error: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("✅ API response received:", data);
+            return data;
+        })
+        .catch(error => {
+            console.error("❌ Error fetching parking data:", error);
+            return []; // Return empty array to prevent further errors
+        });
+}
+
 
 // Utility function to populate dropdown menus
 async function populateDropdown() {
