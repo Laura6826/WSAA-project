@@ -40,6 +40,12 @@ class OpeningHoursDAO:
         except Error as e:
             logging.error("Database error: %s", e)
             return False if not fetch else None
+    
+    def get_all_opening_hours(self):
+        """Retrieves opening hours for all car parks."""
+        sql = "SELECT * FROM opening_hours"
+        return self.execute_query(sql, fetch=True)
+
 
     def add_opening_hours(self, car_park_id, day, opening_time, closing_time, status):
         """Adds new opening hours for a car park."""

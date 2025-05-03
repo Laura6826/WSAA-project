@@ -4,6 +4,7 @@ import logging
 from dao.car_parks_dao import CarParksDAO
 from dao.opening_hours_dao import OpeningHoursDAO
 from marshmallow import ValidationError
+from schema.schema import CarParkSchema, OpeningHoursSchema  
 from dao.live_spaces_dao import LiveSpacesDAO
 
 app = Flask(__name__, static_folder='static')
@@ -34,47 +35,57 @@ def index():
 @app.route('/api/parking-availability', methods=['GET'])
 def fetch_parking_availability():
     try:
+        logging.debug("API request received at /api/parking-availability")
+        
+        # Ensure RESOURCE_ID and API_URL exist
+        local_resource_id = "car_parks"  
+        API_URL = "https://your-api-url.com/data"
+
         # Fetch live space availability
-        params = {"sql": f'SELECT * FROM "{RESOURCE_ID}"'}
+        params = {"sql": "SELECT * FROM %s" % local_resource_id}  
         response = requests.get(API_URL, params=params, timeout=10)
         response.raise_for_status()
         live_data = response.json().get("result", {}).get("records", [])
 
+        logging.debug("Live parking data retrieved: %s", live_data) 
         # Fetch car park details (height & opening hours) from MySQL
         car_parks = car_parks_dao.get_all_car_parks()
-        opening_hours = opening_hours_dao.get_opening_hours_for_car_park()
+        opening_hours = opening_hours_dao.get_all_opening_hours()
 
-        # Merge results
+        # Merge results correctly
         for car_park in car_parks:
             car_park["live_spaces"] = next(
-                (data for data in live_data if data["id"] == car_park["id"]), {}
-            )
-            # Retrieve opening hours for the specific car park
-            car_park_opening_hours = opening_hours_dao.get_opening_hours_for_car_park(car_park["id"])
-
-            # Ensure data is merged correctly without overwriting previous values
-            car_park["opening_hours"] = car_park_opening_hours if car_park_opening_hours else next(
-                (hours for hours in opening_hours if hours["car_park_id"] == car_park["id"]), {}
+                (data for data in live_data if data.get("id") == car_park.get("id")), {}
             )
 
-        return jsonify(car_parks), 200
+            # Retrieve opening hours correctly
+            car_park["opening_hours"] = next(
+                (hours for hours in opening_hours if hours.get("car_park_id") == car_park.get("id")), {}
+            )
 
+        logging.debug("Merged parking data: %s", car_parks)  
+
+        return jsonify(car_parks), 200  # Fix return variable
+    except requests.exceptions.RequestException as e:
+        logging.error("Failed to fetch live parking data: %s", e) 
+        return jsonify({"error": "Failed to retrieve live parking data"}), 500
     except Exception as e:
-        logging.error(f"Error fetching parking availability: {e}")
+        logging.error("Unexpected error in fetch_parking_availability: %s", e)  
         return jsonify({"error": str(e)}), 500
 
 # CRUD operations for Car Parks
 # Fetch all car parks
 # curl -X GET http://
+
 @app.route('/api/car-parks', methods=['GET'])
 def fetch_all_car_parks():
-    try:
-        car_parks = car_parks_dao.get_all_car_parks()
-        logging.debug(f"✅ Retrieved car parks from database: {car_parks}")  # Debugging step
-        return jsonify(car_parks), 200
-    except Exception as e:
-        logging.error(f"❌ Error fetching car parks: {e}")
-        return jsonify({"error": str(e)}), 500
+    logging.debug("API request received at /api/car-parks")
+    
+    car_parks = car_parks_dao.get_all_car_parks()
+    schema = CarParkSchema(many=True)
+
+    logging.debug("Serialized car park data: %s", schema.dump(car_parks)) 
+    return jsonify(schema.dump(car_parks)), 200  
 
 # Create a new car park
 # curl -X POST -H "Content-Type: application/json" -d '{"name": "Test Car
@@ -250,7 +261,6 @@ def update_opening_hours(opening_hours_id):
         logging.error(f"Error updating opening hours: {e}")
         return jsonify({"error": str(e)}), 500
 
-
 # Delete opening hours for a car park
 # curl -X DELETE http://127.0.0.1:5000/api/opening-hours/1
 
@@ -266,7 +276,6 @@ def delete_opening_hours(opening_hours_id):
     except Exception as e:
         logging.error(f"Error deleting opening hours: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == "__main__":
     logging.debug("Starting the Flask server...")

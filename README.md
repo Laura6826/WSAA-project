@@ -114,10 +114,16 @@ pip install requests
 WSAA-project/
 
 ```ruby
-├── server.py           # Main Flask application
+│
+├── dao/
+│   ├── car_parks_dao.py     # DAO for the car park height restriction data.
+│   ├── live_spaces_dao.py   # DAO for the car park opening hours data.
+│   ├── opening_hours_dao.py # DAO for Parking data.
+│
+├── server.py                # Main Flask application
 ├── README.md                # Documentation for your project
 ├── package.json             # If you are using Node.js for dependencies
-├── server.js               # Backend server file (if applicable)
+├── server.js                # Backend server file (if applicable)
 ├── .gitignore               # Git ignored files (if using Git)
 ├── requirements.txt         # Python dependencies
 │
@@ -127,7 +133,7 @@ WSAA-project/
 ├── schema/                  # Folder for storing the database schemas
 │   ├── schema.py            # SQL script for the car park and opening hours databases
 │
-├── templates/              # Folder for HTML
+├── templates/               # Folder for HTML
 │   ├── parking_checker.html # Main HTML file for the app
 │
 ├── static/                  # Folder for static assets
