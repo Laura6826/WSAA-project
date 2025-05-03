@@ -3,6 +3,7 @@ import requests
 import logging
 from dao.car_parks_dao import CarParksDAO
 from dao.opening_hours_dao import OpeningHoursDAO
+from dao.live_spaces_dao import LiveSpacesDAO
 from marshmallow import ValidationError
 from schema.schema import CarParkSchema, OpeningHoursSchema  
 from dao.live_spaces_dao import LiveSpacesDAO

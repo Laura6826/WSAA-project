@@ -43,33 +43,33 @@ class OpeningHoursDAO:
     
     def get_all_opening_hours(self):
         """Retrieves opening hours for all car parks."""
-        sql = "SELECT * FROM opening_hours"
+        sql = "SELECT * FROM openinghours"
         return self.execute_query(sql, fetch=True)
 
 
     def add_opening_hours(self, car_park_id, day, opening_time, closing_time, status):
         """Adds new opening hours for a car park."""
         sql = """
-            INSERT INTO OpeningHours (car_park_id, day, opening_time, closing_time, status)
+            INSERT INTO openinghours (car_park_id, day, opening_time, closing_time, status)
             VALUES (%s, %s, %s, %s, %s)
         """
         return self.execute_query(sql, (car_park_id, day, opening_time, closing_time, status))
 
     def get_opening_hours_for_car_park(self, car_park_id):
         """Retrieves opening hours for a specific car park."""
-        sql = "SELECT * FROM OpeningHours WHERE car_park_id = %s"
+        sql = "SELECT * FROM openinghours WHERE car_park_id = %s"
         return self.execute_query(sql, (car_park_id,), fetch=True)
 
-    def update_opening_hours(self, opening_hours_id, day, opening_time, closing_time, status):
+    def update_opening_hours(self, openinghours_id, day, opening_time, closing_time, status):
         """Updates existing opening hours entry."""
         sql = """
-            UPDATE OpeningHours
+            UPDATE openinghours
             SET day = %s, opening_time = %s, closing_time = %s, status = %s
             WHERE id = %s
         """
-        return self.execute_query(sql, (day, opening_time, closing_time, status, opening_hours_id))
+        return self.execute_query(sql, (day, opening_time, closing_time, status,openinghours_id))
 
-    def delete_opening_hours(self, opening_hours_id):
+    def delete_opening_hours(self, openinghours_id):
         """Deletes an opening hours entry by ID."""
-        sql = "DELETE FROM OpeningHours WHERE id = %s"
-        return self.execute_query(sql, (opening_hours_id,))
+        sql = "DELETE FROM openinghours WHERE id = %s"
+        return self.execute_query(sql, (openinghours_id,))

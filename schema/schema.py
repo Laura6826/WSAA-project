@@ -6,13 +6,13 @@ Reference: https://marshmallow.readthedocs.io/en/latest/
 
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow import fields, validate, post_load
-from models.car_park import CarPark 
-from models.opening_hours import OpeningHours  
+from car_park import CarPark 
+from openinghours import OpeningHours  # Ensure these imports are correct based on your project structure
 
 class OpeningHoursSchema(SQLAlchemyAutoSchema):
     """Schema for car park opening hours."""
     class Meta:
-        model = OpeningHours
+        model = OpeningHours  # Ensures correct mapping
         load_instance = True
 
     day = fields.Str(required=True)
@@ -30,11 +30,10 @@ class OpeningHoursSchema(SQLAlchemyAutoSchema):
             data["status"] = "Open"
         return data
 
-
 class CarParkSchema(SQLAlchemyAutoSchema):
     """Schema for car park records."""
     class Meta:
-        model = CarPark
+        model = CarPark  # Ensures correct table mapping
         load_instance = True
 
     name = fields.Str(required=True)
@@ -42,5 +41,5 @@ class CarParkSchema(SQLAlchemyAutoSchema):
     opening_hours = fields.List(
         fields.Nested(OpeningHoursSchema),
         required=True,
-        validate=validate.Length(min=1)  # Ensure at least one entry
+        validate=validate.Length(min=1)  # Ensures at least one entry
     )

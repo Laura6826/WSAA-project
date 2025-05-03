@@ -9,35 +9,15 @@ import dbconfig as cfg
 logging.basicConfig(level=logging.ERROR)
 
 class CarParksDAO:
-    """DAO for managing car park records in the database."""
-
-    def test_db_connection(self):
-        """Tests database connection and logs potential credential errors."""
-        try:
-            logging.debug("Attempting to connect to the database...")
-            with connect(
-                host=cfg.mysql["host"],
-                user=cfg.mysql["user"],
-                password=cfg.mysql["password"],
-                database=cfg.mysql["database"],
-                port=cfg.mysql.get("port", 3306),
-            ) as connection:
-                logging.debug("✅ Database connection successful.")
-                return True
-        except Error as e:
-            logging.error("❌ Database connection failed: %s", e)
-            logging.error("🔍 Check credentials: host=%s, user=%s, database=%s, port=%s",
-                          cfg.mysql["host"], cfg.mysql["user"], cfg.mysql["database"], cfg.mysql.get("port", 3306))
-            return False
+    """DAO for managing car park records in the 'carparks' database."""
 
     def execute_query(self, sql, params=None, fetch=False):
-        """Executes an SQL query with a managed connection."""
         try:
             with connect(
                 host=cfg.mysql["host"],
                 user=cfg.mysql["user"],
                 password=cfg.mysql["password"],
-                database=cfg.mysql["database"],
+                database="carparks",  # ✅ Corrected to match your database name
                 port=cfg.mysql.get("port", 3306),
             ) as connection:
                 with connection.cursor(dictionary=True) as cursor:
@@ -49,6 +29,7 @@ class CarParksDAO:
         except Error as e:
             logging.error("❌ Query execution failed: %s", e)
             return False if not fetch else None
+
 
     def create_car_park(self, name, height):
         """Creates a new car park."""
