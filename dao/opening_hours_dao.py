@@ -3,44 +3,51 @@
 # Author: Laura Lyons
 
 import logging
-from mysql.connector import connect, Error  # Ensure proper error handling
+import pymysql
+from pymysql.err import MySQLError
 import dbconfig as cfg
 
 logging.basicConfig(level=logging.ERROR)
 
 class OpeningHoursDAO:
-    """DAO for managing opening hours in the database."""
-
-    def execute_query(self, sql, params=None, fetch=False):
-        """
-        Executes an SQL query within a managed MySQL connection.
-
-        Args:
-            sql (str): SQL query to be executed.
-            params (tuple, optional): Query parameters. Defaults to None.
-            fetch (bool, optional): Whether to fetch results (True) or commit changes (False).
-
-        Returns:
-            list | bool: Query results if fetch=True, otherwise True/False indicating success.
-        """
+    def __init__(self):
         try:
-            with connect(
+            self.connection = pymysql.connect(
                 host=cfg.mysql["host"],
                 user=cfg.mysql["user"],
                 password=cfg.mysql["password"],
                 database=cfg.mysql["database"],
                 port=cfg.mysql.get("port", 3306),
-            ) as connection:
-                with connection.cursor(dictionary=True) as cursor:
-                    cursor.execute(sql, params or ())
-                    if fetch:
-                        return cursor.fetchall()
-                    connection.commit()
-                    return True
-        except Error as e:
-            logging.error("Database error: %s", e)
+                cursorclass=pymysql.cursors.DictCursor
+            )
+            print("Connected to MySQL in OpeningHoursDAO with PyMySQL!")
+        except MySQLError as err:
+            print("Error connecting to MySQL in CarParksDAO:", err)
+            raise
+
+    def execute_query(self, sql, params=None, fetch=False, fetch_one=False):
+        if not self.connection or not self.connection.open:
+            logging.error("No active database connection.")
+            return None
+
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(sql, params or ())
+                result = cursor.fetchone() if fetch_one else (cursor.fetchall() if fetch else None)
+                self.connection.commit()
+                return result if fetch or fetch_one else True
+        except MySQLError as err:
+            logging.error("Query execution failed: %s", err)
             return False if not fetch else None
-    
+
+    def close_connection(self):
+        try:
+            if self.connection and self.connection.open:
+                self.connection.close()
+                print("Database connection closed.")
+        except MySQLError as err:
+            logging.error("Error closing connection: %s", err)
+
     def get_all_opening_hours(self):
         """Retrieves opening hours for all car parks."""
         sql = "SELECT * FROM openinghours"
@@ -61,15 +68,22 @@ class OpeningHoursDAO:
         return self.execute_query(sql, (car_park_id,), fetch=True)
 
     def update_opening_hours(self, openinghours_id, day, opening_time, closing_time, status):
-        """Updates existing opening hours entry."""
         sql = """
             UPDATE openinghours
             SET day = %s, opening_time = %s, closing_time = %s, status = %s
             WHERE id = %s
         """
-        return self.execute_query(sql, (day, opening_time, closing_time, status,openinghours_id))
+        return self.execute_query(sql, (day, opening_time, closing_time, status, openinghours_id))
 
     def delete_opening_hours(self, openinghours_id):
         """Deletes an opening hours entry by ID."""
         sql = "DELETE FROM openinghours WHERE id = %s"
         return self.execute_query(sql, (openinghours_id,))
+
+    def __del__(self):
+        try:
+            if self.connection and self.connection.open:
+                self.connection.close()
+        except MySQLError as err:
+            logging.error("Error during cleanup: %s", err)  
+    

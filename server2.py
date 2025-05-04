@@ -1,120 +1,75 @@
 from flask import Flask, request, jsonify, render_template
-from marshmallow import ValidationError
 import requests
 import logging
+from schema.schema import CarParkSchema, OpeningHoursSchema
+from marshmallow import ValidationError
+
+app = Flask(__name__, static_folder='static')
+
 from dao.car_parks_dao import CarParksDAO
 from dao.opening_hours_dao import OpeningHoursDAO
 from dao.live_spaces_dao import LiveSpacesDAO
-from schema.schema import CarParkSchema, OpeningHoursSchema
-
-app = Flask(__name__, template_folder="templates")
 
 # DAO instances
 car_parks_dao = CarParksDAO()
 opening_hours_dao = OpeningHoursDAO()
 live_spaces_dao = LiveSpacesDAO()
 
-if not car_parks_dao:
-    logging.error("❌ CarParksDAO is missing!")
-    raise RuntimeError("DAO objects not initialized correctly.")
+# External API details
+API_URL = "https://data.corkcity.ie/en_GB/api/3/action/datastore_search_sql"
+RESOURCE_ID = "f4677dac-bb30-412e-95a8-d3c22134e3c0"
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=logging.DEBUG)
 
 # Root endpoint
 # Check if the API is reachable; http://127.0.0.1:5000/
-@app.route("/")
-def hello():
-    return "Hello, world!"
 
-# Root endpoint
-# Check if the API is reachable; http://127.0.0.1:5000/
-@app.route("/")
-def home():
-    return render_template("parking_checker.html")
+@app.route('/')
+def index():
+    logging.debug("Serving the Parking Checker HTML file.")
+    return render_template('parking_checker2.html')
 
-# API endpoint to fetch live parking availability
-# Check if the API is reachable; http://
-@app.route('/api/parking-availability', methods=['GET'])
-def fetch_parking_availability():
-    try:
-        logging.debug("✅ API request received at /api/parking-availability")
+# Existing API: Fetch live parking data
+# curl -X GET http://127.0.0.1:5000/api/fetch
 
-        # Validate DAOs exist before proceeding
-        if not car_parks_dao or not opening_hours_dao:
-            logging.error("❌ DAO objects are missing! Ensure they are initialized properly.")
-            return jsonify({"error": "Server misconfiguration"}), 500
-
-        # Define API details
-        local_resource_id = "car_parks"  
-        API_URL = "https://data.corkcity.ie/en_GB/api/3/action/datastore_search_sql"
-        RESOURCE_ID = "f4677dac-bb30-412e-95a8-d3c22134e3c0"
-
-        # Ensure API_URL is correctly formatted
-        if not API_URL.startswith("https://"):
-            logging.error("❌ Invalid API URL format.")
-            return jsonify({"error": "API configuration error"}), 500
-
-        # Fetch live parking data safely
-        params = {"sql": f"SELECT * FROM {local_resource_id}"}  
-        try:
-            response = requests.get(API_URL, params=params, timeout=10)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            logging.error(f"❌ API request failed: {e}")
-            return jsonify({"error": "Failed to retrieve live parking data"}), 500
-
-        # Validate JSON response before accessing
-        try:
-            live_data = response.json().get("result", {}).get("records", [])
-        except requests.exceptions.JSONDecodeError:
-            logging.error("❌ API returned invalid JSON format.")
-            return jsonify({"error": "Invalid JSON received from API"}), 500
-
-        logging.debug(f"✅ Successfully retrieved {len(live_data)} live parking records.")
-
-        # Fetch additional car park details from MySQL
+@app.route('/api/car-parks', methods=['GET'])
+def get_car_parks():
+    # Fetch static car park details from database
+    car_parks = car_parks_dao.get_all_car_parks()
+    
+    # Fetch live availability data
+    live_data = live_spaces_dao.fetch_live_spaces()
+    
+    # Merge live parking availability into the car park list
+    def get_car_parks():
+        # Fetch static car park details from database
         car_parks = car_parks_dao.get_all_car_parks()
-        opening_hours = opening_hours_dao.get_all_opening_hours()
+        
+        # Fetch live availability data
+        live_data = live_spaces_dao.fetch_live_spaces()
+        
+        # Merge live parking availability into the car park list
+        for park in car_parks:
+            park_id = str(park["id"])  # Convert ID to string for matching
+            park["free_spaces"] = next((item.get("free_spaces", "Unavailable") for item in live_data if item.get("id") == park_id), "Unavailable")
 
-        logging.debug(f"✅ Fetched {len(car_parks)} stored car parks from database.")
+        return jsonify(car_parks) 
 
-        # Merge live spaces & opening hours into car parks
-        for car_park in car_parks:
-            car_park["live_spaces"] = next(
-                (data for data in live_data if data.get("id") == car_park.get("id")), {}
-            )
-            car_park["opening_hours"] = next(
-                (hours for hours in opening_hours if hours.get("car_park_id") == car_park.get("id")), {}
-            )
-
-        logging.debug("✅ Successfully merged parking data.")
-
-        return jsonify(car_parks), 200
-
-    except Exception as e:
-        logging.error(f"❌ Unexpected error in fetch_parking_availability: {e}")
-        return jsonify({"error": str(e)}), 500
+if __name__ == '__main__':
+    app.run(debug=True)
 
 # CRUD operations for Car Parks
 # Fetch all car parks
-# curl -X GET http://
 
 @app.route('/api/car-parks', methods=['GET'])
 def fetch_all_car_parks():
-    logging.debug("Fetching car parks from MySQL...")
-    
-    car_parks = car_parks_dao.get_all_car_parks()  # DB stored parks
-    live_spaces_data = live_spaces_dao.fetch_live_spaces()  # API fetched spaces
-
-    # Merge live spaces into car park details
-    for car_park in car_parks:
-        car_park["live_spaces"] = next(
-            (data for data in live_spaces_data if data["id"] == car_park["id"]), {}
-        )
-
-    return jsonify(car_parks), 200
-
+    try:
+        car_parks = car_parks_dao.get_all_car_parks()
+        return jsonify(car_parks), 200
+    except Exception as e:
+        logging.error(f"Error fetching car parks: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # Create a new car park
 # curl -X POST -H "Content-Type: application/json" -d '{"name": "Test Car
@@ -143,7 +98,7 @@ def create_car_park():
         return jsonify({"errors": err.messages}), 400
     except Exception as e:
         logging.error(f"Error creating car park: {e}")
-        return jsonify({"error": str(e)}), 5000
+        return jsonify({"error": str(e)}), 500
 
 # Update a car park
 # curl -X PUT -H "Content-Type: application/json" -d '{"name": "Updated
@@ -307,6 +262,5 @@ def delete_opening_hours(opening_hours_id):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    print("Registered Routes:", app.url_map)
-    logging.debug("Starting the Flask server...")
+    print("Starting Flask server on http://127.0.0.1:5000")
     app.run(debug=True)

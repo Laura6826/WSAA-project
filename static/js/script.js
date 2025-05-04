@@ -3,137 +3,74 @@
 // Author: Laura Lyons
 
 document.addEventListener("DOMContentLoaded", async function () {
-    await populateDropdown(); // Populate dropdown with any existing local data
+    await fetchCarParks(); // Fetch car park data and populate dropdowns
     updateCurrentTime();
     setInterval(updateCurrentTime, 1000);
-
-    // Fetch latest parking availability from Flask API
-    try {
-        const response = await fetch("/api/car-parks");
-        const data = await response.json();
-
-        const dropdown = document.getElementById("carParkDropdown");
-        dropdown.innerHTML = ""; // Clear previous data
-
-        data.forEach(carPark => {
-            const option = document.createElement("option");
-            option.value = carPark.id;
-            option.textContent = carPark.name;
-            dropdown.appendChild(option);
-        });
-    } catch (error) {
-        console.error("Error fetching car parks:", error);
-    }
 });
 
-// Function to update the current time dynamically
+// Function to update current time dynamically
 function updateCurrentTime() {
-    const now = new Date(); // Get the current date and time
-    const hours = String(now.getHours()).padStart(2, '0'); // Format hours (24-hour format)
-    const minutes = String(now.getMinutes()).padStart(2, '0'); // Format minutes
-    const seconds = String(now.getSeconds()).padStart(2, '0'); // Format seconds
-    const formattedTime = `${hours}:${minutes}:${seconds}`; // Combine into a time string
-    document.getElementById('currentTime').innerText = formattedTime; // Update the content of span
+    document.getElementById('currentTime').innerText = new Date().toLocaleTimeString("en-GB", { hour12: false });
 }
 
-// Call the function immediately and then every second
-updateCurrentTime(); // Initialize the time display
-setInterval(updateCurrentTime, 1000); // Update every second
+// Fetch car parks and populate dropdowns
+async function fetchCarParks() {
+    try {
+        const response = await fetch("/api/car-parks");
+        if (!response.ok) throw new Error(`Server Error: ${response.status} ${response.statusText}`);
 
-// Get Current Day Name
-function getCurrentDayName() {
-    const dayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    return days[dayIndex];
-}
+        const data = await response.json();
+        console.log("API response received:", data); // Debugging
 
-// Function to fetch car parks and populate dropdown menus
-function fetchCarParks() {
-    fetch("/api/car-parks")
-        .then(response => response.json())
-        .then(data => {
-            console.log("✅ API response received:", data); // Debugging step
-            document.getElementById("debugOutput").innerText = JSON.stringify(data, null, 2); // ✅ Show API data on the webpage
-            populateDropdown("carParkDropdown", data);
-            populateDropdown("updateCarParkDropdown", data);
-            populateDropdown("deleteCarParkDropdown", data);
-        })
-        .catch(error => {
-            console.error("❌ Error fetching car parks:", error);
-            document.getElementById("debugOutput").innerText = "❌ Error fetching car parks: " + error; // ✅ Show errors on the webpage
-        });
-}
-
-// Initial fetch to populate dropdowns
-async function fetchParkingData() {
-    return fetch("/api/car-parks")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`❌ Server Error: ${response.status} ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("✅ API response received:", data);
-            return data;
-        })
-        .catch(error => {
-            console.error("❌ Error fetching parking data:", error);
-            return []; // Return empty array to prevent further errors
-        });
-}
-
-
-// Utility function to populate dropdown menus
-async function populateDropdown() {
-    const parkingData = await fetchParkingData(); // Get data from the live API
-    console.log("Populating dropdown with parking data:", parkingData); // Debugging
-
-    const dropdown = document.getElementById("carParkDropdown");
-    dropdown.innerHTML = '<option value="">Select Car Park</option>'; // Default option
-
-    if (!parkingData || parkingData.length === 0) {
-        dropdown.innerHTML += '<option disabled>No car parks available</option>';
-        return;
+        populateDropdown(["carParkDropdown", "updateCarParkDropdown", "deleteCarParkDropdown"], data);
+    } catch (error) {
+        console.error("Error fetching car park data:", error);
     }
+}
 
-    parkingData.forEach(park => {
-        const option = document.createElement("option");
-        option.value = park.id;  // Ensure 'id' is used correctly for selection
-        option.dataset.freeSpaces = park.free_spaces || "0"; // Dynamically set free spaces
-        option.innerText = park.name || "Unnamed Car Park";
-        dropdown.appendChild(option);
+// Function to populate multiple dropdowns dynamically
+function populateDropdown(dropdownIds, parkingData) {
+    dropdownIds.forEach(dropdownId => {
+        const dropdown = document.getElementById(dropdownId);
+        dropdown.innerHTML = '<option value="">Select Car Park</option>';
+
+        if (!parkingData || parkingData.length === 0) {
+            dropdown.innerHTML += '<option disabled>No car parks available</option>';
+            console.error("No car park data received.");
+            return;
+        }
+
+        parkingData.forEach(park => {
+            const option = document.createElement("option");
+            option.value = park.id;
+            option.dataset.freeSpaces = park.free_spaces !== "Unavailable" ? park.free_spaces : "Closed";
+            option.innerText = `${park.name} (Spaces: ${option.dataset.freeSpaces})`;
+            dropdown.appendChild(option);
+        });
+
+        console.log(`Populated ${dropdownId} with ${parkingData.length} car parks.`);
     });
 }
 
-// Function to check availability of free spaces
-async function checkFreeSpaces() {
-    const parkingData = await fetchParkingData(); // Fetch live data
-    console.log("Checking parking availability:", parkingData); // Debugging
-
+// Check availability of free spaces
+function checkFreeSpaces() {
     const dropdown = document.getElementById("carParkDropdown");
-    const selectedId = dropdown.value; // Get selected car park ID
-
+    const selectedId = dropdown.value;
+    
     if (!selectedId) {
         console.error("No valid selection.");
         return;
     }
 
-    const selectedCarPark = parkingData.find(park => park.id == selectedId);
-    console.log("Matched car park from live data:", selectedCarPark); // Debugging
-
-    if (!selectedCarPark) {
-        console.error("Car park not found in live data.");
-        return;
-    }
-
-    const freeSpaces = parseInt(selectedCarPark.free_spaces) || 0;
-    console.log("Free spaces available:", freeSpaces); // Debugging
-
+    const freeSpaces = dropdown.options[dropdown.selectedIndex].dataset.freeSpaces;
     const resultContainer = document.getElementById("checkFreeSpaces");
-    resultContainer.className = "alert mt-3"; // Reset classes
-    if (freeSpaces > 0) {
-        resultContainer.innerText = `Yes, there are ${freeSpaces} free spaces available.`;
+    resultContainer.className = "alert mt-3";
+
+    if (freeSpaces === "Closed") {
+        resultContainer.innerText = "This car park is closed.";
+        resultContainer.classList.add("alert-warning");
+    } else if (parseInt(freeSpaces) > 0) {
+        resultContainer.innerText = `Yes, ${freeSpaces} free spaces available.`;
         resultContainer.classList.add("alert-success");
     } else {
         resultContainer.innerText = "No, the car park is full.";
@@ -142,61 +79,34 @@ async function checkFreeSpaces() {
     resultContainer.classList.remove("d-none");
 }
 
-// Function to add a new car park
-function addCarPark() {
-    const name = document.getElementById("newCarParkName").value;
-    if (!name.trim()) {
-        alert("Please enter a car park name.");
+// Manage car park CRUD operations (Add, Update, Delete)
+async function manageCarPark(action) {
+    const id = document.getElementById(`${action}CarParkDropdown`)?.value;
+    const name = document.getElementById(`${action}CarParkName`)?.value?.trim();
+
+    if (action !== "delete" && (!id || !name)) {
+        alert(`Please provide valid ${action} details.`);
         return;
     }
 
-    fetch("/api/car-parks", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({name})
-    })
-    .then(response => response.json())
-    .then(() => {
-        fetchCarParks(); // Refresh dropdowns
-        document.getElementById("newCarParkName").value = "";
-    })
-    .catch(error => console.error("Error adding car park:", error));
-}
+    const method = action === "delete" ? "DELETE" : (action === "add" ? "POST" : "PUT");
+    const body = action !== "delete" ? JSON.stringify({ name }) : null;
 
-// Function to update a car park
-function updateCarPark() {
-    const id = document.getElementById("updateCarParkDropdown").value;
-    const newName = document.getElementById("updateCarParkName").value;
+    try {
+        const response = await fetch(`/api/car-parks${action !== "add" ? "/" + id : ""}`, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body
+        });
 
-    if (!id || !newName.trim()) {
-        alert("Please select a car park and enter a new name.");
-        return;
+        if (!response.ok) throw new Error(`Failed to ${action} car park. Status: ${response.status}`);
+        console.log(`Car park ${action} successful`);
+
+        await fetchCarParks(); // Refresh dropdowns
+        if (name) document.getElementById(`${action}CarParkName`).value = "";
+    } catch (error) {
+        console.error(`Error ${action}ing car park:`, error);
     }
-
-    fetch(`/api/car-parks/${id}`, {
-        method: "PUT",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({name: newName})
-    })
-    .then(response => response.json())
-    .then(() => {
-        fetchCarParks(); // Refresh dropdowns
-        document.getElementById("updateCarParkName").value = "";
-    })
-    .catch(error => console.error("Error updating car park:", error));
 }
 
-// Function to delete a car park
-function deleteCarPark() {
-    const id = document.getElementById("deleteCarParkDropdown").value;
-    if (!id) {
-        alert("Please select a car park to delete.");
-        return;
-    }
-
-    fetch(`/api/car-parks/${id}`, {method: "DELETE"})
-    .then(response => response.json())
-    .then(() => fetchCarParks()) // Refresh dropdowns after deletion
-    .catch(error => console.error("Error deleting car park:", error));
-}
 
