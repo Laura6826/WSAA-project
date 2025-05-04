@@ -36,15 +36,14 @@ function populateDropdown(dropdownIds, parkingData) {
 
         if (!parkingData || parkingData.length === 0) {
             dropdown.innerHTML += '<option disabled>No car parks available</option>';
-            console.error("No car park data received.");
+            console.error("❌ No car park data received.");
             return;
         }
 
         parkingData.forEach(park => {
             const option = document.createElement("option");
-            option.value = park.id;
-            option.dataset.freeSpaces = park.free_spaces !== "Unavailable" ? park.free_spaces : "Closed";
-            option.innerText = `${park.name} (Spaces: ${option.dataset.freeSpaces})`;
+            option.value = park.id; // Set the ID for later retrieval
+            option.innerText = park.name;
             dropdown.appendChild(option);
         });
 

@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify, render_template
-import requests
 import logging
 from schema.schema import CarParkSchema, OpeningHoursSchema
 from marshmallow import ValidationError
@@ -14,10 +13,6 @@ from dao.live_spaces_dao import LiveSpacesDAO
 car_parks_dao = CarParksDAO()
 opening_hours_dao = OpeningHoursDAO()
 live_spaces_dao = LiveSpacesDAO()
-
-# External API details
-API_URL = "https://data.corkcity.ie/en_GB/api/3/action/datastore_search_sql"
-RESOURCE_ID = "f4677dac-bb30-412e-95a8-d3c22134e3c0"
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -42,22 +37,11 @@ def get_car_parks():
     live_data = live_spaces_dao.fetch_live_spaces()
     
     # Merge live parking availability into the car park list
-    def get_car_parks():
-        # Fetch static car park details from database
-        car_parks = car_parks_dao.get_all_car_parks()
-        
-        # Fetch live availability data
-        live_data = live_spaces_dao.fetch_live_spaces()
-        
-        # Merge live parking availability into the car park list
-        for park in car_parks:
-            park_id = str(park["id"])  # Convert ID to string for matching
-            park["free_spaces"] = next((item.get("free_spaces", "Unavailable") for item in live_data if item.get("id") == park_id), "Unavailable")
+    for park in car_parks:
+        park_id = str(park["id"])
+        park["free_spaces"] = next((item.get("free_spaces", "Unavailable") for item in live_data if item.get("id") == park_id), "Unavailable")
 
-        return jsonify(car_parks) 
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    return jsonify(car_parks)
 
 # CRUD operations for Car Parks
 # Fetch all car parks
