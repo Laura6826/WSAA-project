@@ -19,9 +19,11 @@
 
         <!-- Car park selection dropdown -->
         <div class="mt-4">
-            <label for="carParkDropdown" class="form-label">Select Car Park to check availability:</label>
+            <label for="carParkDropdown" class="form-label">Select Car Park:</label>
             <select id="carParkDropdown" class="form-select"></select>
-            <button class="btn btn-success mt-2" onclick="checkFreeSpaces()">Check Availability</button>
+
+            <!-- Dynamic space availability display -->
+            <div id="checkFreeSpaces" class="alert mt-3 d-none"></div>
         </div>
 
         <!-- Free space availability -->

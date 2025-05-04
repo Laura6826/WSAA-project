@@ -6,6 +6,39 @@ document.addEventListener("DOMContentLoaded", async function () {
     await fetchCarParks(); // Fetch car park data and populate dropdowns
     updateCurrentTime();
     setInterval(updateCurrentTime, 1000);
+
+    // Add event listener to automatically fetch availability on dropdown selection
+    document.getElementById("carParkDropdown").addEventListener("change", async function () {
+        const selectedId = this.value;
+        if (!selectedId) return;
+
+        try {
+            const response = await fetch(`/api/car-parks/${selectedId}`);  
+            if (!response.ok) throw new Error(`❌ Server Error: ${response.status} ${response.statusText}`);
+
+            const carPark = await response.json();
+            console.log("🔍 Live free spaces:", carPark.free_spaces);
+
+            const freeSpaces = carPark.free_spaces;
+            const resultContainer = document.getElementById("checkFreeSpaces");
+            resultContainer.className = "alert mt-3";
+
+            if (freeSpaces === "Closed") {
+                resultContainer.innerText = "This car park is closed.";
+                resultContainer.classList.add("alert-warning");
+            } else if (parseInt(freeSpaces) > 0) {
+                resultContainer.innerText = `Yes, ${freeSpaces} free spaces available.`;
+                resultContainer.classList.add("alert-success");
+            } else {
+                resultContainer.innerText = "No, the car park is full.";
+                resultContainer.classList.add("alert-danger");
+            }
+
+            resultContainer.classList.remove("d-none");
+        } catch (error) {
+            console.error("❌ Error fetching availability:", error);
+        }
+    });
 });
 
 // Function to update current time dynamically
@@ -51,32 +84,6 @@ function populateDropdown(dropdownIds, parkingData) {
     });
 }
 
-// Check availability of free spaces
-function checkFreeSpaces() {
-    const dropdown = document.getElementById("carParkDropdown");
-    const selectedId = dropdown.value;
-    
-    if (!selectedId) {
-        console.error("No valid selection.");
-        return;
-    }
-
-    const freeSpaces = dropdown.options[dropdown.selectedIndex].dataset.freeSpaces;
-    const resultContainer = document.getElementById("checkFreeSpaces");
-    resultContainer.className = "alert mt-3";
-
-    if (freeSpaces === "Closed") {
-        resultContainer.innerText = "This car park is closed.";
-        resultContainer.classList.add("alert-warning");
-    } else if (parseInt(freeSpaces) > 0) {
-        resultContainer.innerText = `Yes, ${freeSpaces} free spaces available.`;
-        resultContainer.classList.add("alert-success");
-    } else {
-        resultContainer.innerText = "No, the car park is full.";
-        resultContainer.classList.add("alert-danger");
-    }
-    resultContainer.classList.remove("d-none");
-}
 
 // Manage car park CRUD operations (Add, Update, Delete)
 async function manageCarPark(action) {

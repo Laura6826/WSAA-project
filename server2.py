@@ -1,5 +1,7 @@
-from flask import Flask, request, jsonify, render_template
 import logging
+import requests
+import json 
+from flask import Flask, request, jsonify, render_template
 from schema.schema import CarParkSchema, OpeningHoursSchema
 from marshmallow import ValidationError
 
@@ -30,18 +32,43 @@ def index():
 
 @app.route('/api/car-parks', methods=['GET'])
 def get_car_parks():
-    # Fetch static car park details from database
-    car_parks = car_parks_dao.get_all_car_parks()
-    
-    # Fetch live availability data
+    car_parks = car_parks_dao.get_all_car_parks()  # ✅ Ensure car_parks is correctly retrieved
     live_data = live_spaces_dao.fetch_live_spaces()
-    
-    # Merge live parking availability into the car park list
+
+    logging.debug("🔍 Full Live API Response: %s", json.dumps(live_data, indent=2))  
+
     for park in car_parks:
-        park_id = str(park["id"])
-        park["free_spaces"] = next((item.get("free_spaces", "Unavailable") for item in live_data if item.get("id") == park_id), "Unavailable")
+        park_id = str(park["id"])  # Convert database ID to string
+
+        # ✅ Debugging: Print each car park ID before merging
+        logging.debug("🔍 Checking park ID: %s", park_id)
+
+        # ✅ Debug live API entry format before merging
+        for item in live_data:
+            logging.debug("🔍 Live API item structure: %s", item)
+
+        # ✅ Update key name to match live API structure
+        park["free_spaces"] = next(
+            (item.get("free_spaces", "Unavailable") for item in live_data if str(item.get("car_park_id")) == park_id),
+            "Unavailable"
+        )
 
     return jsonify(car_parks)
+
+# Fetch live parking data for a specific car park
+# curl -X GET http://
+@app.route('/api/car-parks/<int:car_park_id>', methods=['GET'])
+def get_car_park_availability(car_park_id):
+    # Fetch static car park details
+    car_park = next((park for park in car_parks_dao.get_all_car_parks() if park["id"] == car_park_id), None)
+    if not car_park:
+        return jsonify({"error": "Car park not found"}), 404
+
+    # Fetch live availability data
+    live_data = live_spaces_dao.fetch_live_spaces()
+    car_park["free_spaces"] = next((item.get("free_spaces", "Unavailable") for item in live_data if item.get("id") == str(car_park_id)), "Unavailable")
+
+    return jsonify(car_park)
 
 # CRUD operations for Car Parks
 # Fetch all car parks
