@@ -3,74 +3,90 @@
 # Author: Laura Lyons
 
 import logging
-from mysql.connector import connect, Error
+import pymysql
+from pymysql.err import MySQLError
 import dbconfig as cfg
 
 logging.basicConfig(level=logging.ERROR)
 
 class CarParksDAO:
-    """DAO for managing car park records in the 'carparks' database."""
-
     def __init__(self):
-        """Initialize database connection when DAO object is created."""
         try:
-            self.connection = connect(
+            self.connection = pymysql.connect(
                 host=cfg.mysql["host"],
                 user=cfg.mysql["user"],
                 password=cfg.mysql["password"],
-                database="carparks",
+                database=cfg.mysql["database"],
                 port=cfg.mysql.get("port", 3306),
+                cursorclass=pymysql.cursors.DictCursor
             )
-            print("✅ CarParksDAO initialized successfully!")
-        except Error as e:
-            logging.error("❌ Database connection failed: %s", e)
-            self.connection = None  # Prevent further errors
+            print("Connected to MySQL in CarParksDAO with PyMySQL!")
+        except MySQLError as err:
+            print("Error connecting to MySQL in CarParksDAO:", err)
+            raise
 
-    def execute_query(self, sql, params=None, fetch=False):
-        """Executes a SQL query using the existing connection."""
-        if not self.connection:
-            logging.error("❌ No database connection available.")
+    def execute_query(self, sql, params=None, fetch=False, fetch_one=False):
+        if not self.connection or not self.connection.open:
+            logging.error("No active database connection.")
             return None
-        
+
         try:
-            with self.connection.cursor(dictionary=True) as cursor:
+            with self.connection.cursor() as cursor:
                 cursor.execute(sql, params or ())
-                if fetch:
-                    return cursor.fetchall()
+                result = cursor.fetchone() if fetch_one else (cursor.fetchall() if fetch else None)
                 self.connection.commit()
-                return True
-        except Error as e:
-            logging.error("❌ Query execution failed: %s", e)
+                return result if fetch or fetch_one else True
+        except MySQLError as err:
+            logging.error("Query execution failed: %s", err)
             return False if not fetch else None
 
     def close_connection(self):
-        """Closes the database connection when done."""
-        if self.connection and self.connection.is_connected():
-            self.connection.close()
-            print("🔴 Database connection closed.")
+        try:
+            if self.connection and self.connection.open:
+                self.connection.close()
+                print("Database connection closed.")
+        except MySQLError as err:
+            logging.error("Error closing connection: %s", err) 
 
     def create_car_park(self, name, height):
-        """Creates a new car park."""
-        sql = "INSERT INTO carparkdetails (name, height) VALUES (%s, %s)"
-        return self.execute_query(sql, (name, height))
+        with self.connection.cursor() as cursor:
+            sql = "INSERT INTO carparkdetails (name, height) VALUES (%s, %s)"
+            cursor.execute(sql, (name, height))
+            self.connection.commit()
+            new_id = cursor.lastrowid
+        return new_id
 
     def get_all_car_parks(self):
-        """Retrieves all car parks."""
-        sql = "SELECT * FROM carparkdetails"
-        return self.execute_query(sql, fetch=True)
+        with self.connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM carparkdetails")
+            result = cursor.fetchall()
+        return result
 
     def get_car_park_by_id(self, car_park_id):
-        """Retrieves a car park by ID."""
         sql = "SELECT * FROM carparkdetails WHERE id = %s"
-        return self.execute_query(sql, (car_park_id,), fetch=True)
+        return self.execute_query(sql, (car_park_id,), fetch_one=True)
+
 
     def update_car_park(self, car_park_id, name, height):
-        """Updates an existing car park."""
-        sql = "UPDATE carparkdetails SET name = %s, height = %s WHERE id = %s"
-        return self.execute_query(sql, (name, height, car_park_id))
+        with self.connection.cursor() as cursor:
+            sql = "UPDATE carparkdetails SET name = %s, height = %s WHERE id = %s"
+            cursor.execute(sql, (name, height, car_park_id))
+            self.connection.commit()
+            affected = cursor.rowcount
+        return affected > 0
 
     def delete_car_park(self, car_park_id):
-        """Deletes a car park by ID."""
-        sql = "DELETE FROM carparkdetails WHERE id = %s"
-        return self.execute_query(sql, (car_park_id,))
+        with self.connection.cursor() as cursor:
+            sql = "DELETE FROM carparkdetails WHERE id = %s"
+            cursor.execute(sql, (car_park_id,))
+            self.connection.commit()
+            affected = cursor.rowcount
+        return affected > 0
+    
+    def __del__(self):
+        try:
+            if self.connection and self.connection.open:
+                self.connection.close()
+        except MySQLError as err:
+            logging.error("Error during cleanup: %s", err)
 
