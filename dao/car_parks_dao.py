@@ -48,6 +48,11 @@ class CarParksDAO:
         except MySQLError as err:
             logging.error("Error closing connection: %s", err) 
 
+    def get_height_restriction(self, car_park_id):
+        sql = "SELECT height FROM carparkdetails WHERE id = %s" 
+        return self.execute_query(sql, (car_park_id,), fetch_one=True)
+
+
     def create_car_park(self, name, height):
         with self.connection.cursor() as cursor:
             sql = "INSERT INTO carparkdetails (name, height) VALUES (%s, %s)"

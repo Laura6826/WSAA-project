@@ -10,6 +10,12 @@ from flask import Flask, request, jsonify, render_template
 from schema.schema import CarParkSchema, OpeningHoursSchema
 from marshmallow import ValidationError
 
+dao = CarParksDAO()
+if dao.connection.open:
+    print("✅ Successfully connected to MySQL through DAO!")
+else:
+    print("❌ Connection failed!")
+
 # Force Flask Debug Mode
 os.environ["FLASK_DEBUG"] = "1"
 
@@ -150,6 +156,61 @@ def get_opening_hours(car_park_id):
         })
 
     return jsonify({"message": f"No opening hours available for {today}."})
+
+# Fetch height restrictions for all car parks (for display)
+# curl -X GET http://127.0.0.1:5000/api/height-restrictions/1
+
+@app.route('/api/height-restriction/<int:car_park_id>', methods=['GET'])
+def get_height_restriction(car_park_id):
+    restriction = car_parks_dao.get_height_restriction(car_park_id)
+
+    print("🔍 Querying height restriction for Car Park ID:", car_park_id)
+    print("🔍 Raw database result:", restriction)
+
+    if restriction:
+        height_value = float(restriction["height"])  # ✅ Extract only the numerical value
+        formatted_height = f"{height_value:.2f}m"  # ✅ Format it properly (two decimal places + "m")
+
+        print("✅ Formatted Height Restriction:", formatted_height)
+        return jsonify({"height_restriction": formatted_height})  
+
+    print("❌ No height restriction found for Car Park ID:", car_park_id)
+    return jsonify({"message": "No height restriction available for this car park."})
+
+# Add a car park
+# curl -X POST http://
+
+@app.route('/api/add-car-park', methods=['POST'])
+def add_car_park():
+    data = request.json
+    name = data.get('name')
+    height_restriction = data.get('height_restriction')
+
+    # ✅ Use the existing CarParksDAO instance instead of calling get_db_connection()
+    new_id = car_parks_dao.create_car_park(name, height_restriction)  
+
+    return jsonify({"message": f"Car park '{name}' added!", "car_park_id": new_id})
+
+
+
+
+# Add opening hours
+@app.route('/api/add-opening-hours', methods=['POST'])
+def add_opening_hours():
+    data = request.json
+    car_park_id = data.get('car_park_id')  # ✅ Links to car park ID
+    opening_time = data.get('opening_time')
+    closing_time = data.get('closing_time')
+    is_24_hours = data.get('is_24_hours', False)
+
+    sql = """
+    INSERT INTO opening_hours (car_park_id, opening_time, closing_time, is_24_hours)
+    VALUES (%s, %s, %s, %s)
+    """
+    
+    execute_query(sql, (car_park_id, opening_time, closing_time, is_24_hours))
+    
+    return jsonify({"message": f"Opening hours added for Car Park ID {car_park_id}!"})
 
 
 

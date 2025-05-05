@@ -37,7 +37,7 @@ body {
 .content {
     background: rgba(255, 255, 255, 0.8);
     border-radius: 10px;
-    padding: 20px;
+    padding: 30px; /* ✅ Increased padding for better spacing */
     max-width: 600px;
     margin: 50px auto;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
@@ -81,3 +81,61 @@ input {
     cursor: pointer;
 }
 
+/* Output Box Styling */
+.alert {
+    min-height: 60px; /* ✅ Consistent box size */
+    padding: 12px;
+    font-size: 16px;
+    text-align: center;
+    max-height: 200px; /* ✅ Prevents excessive box growth */
+    overflow-y: auto; /* ✅ Allows scrolling for long output */
+}
+
+.flex-fill {
+    margin-bottom: 8px; /* ✅ Less space between buttons */
+}
+
+.alert {
+    min-height: 40px; /* ✅ Smaller box height */
+    max-height: 100px; /* ✅ Prevents excessive growth */
+    overflow-y: auto; /* ✅ Keeps long outputs scrollable within box */
+}
+
+
+.container {
+    padding: 10px; /* ✅ Reduced padding */
+    max-width: 500px; /* ✅ More compact width */
+}
+
+.content {
+    padding: 15px; /* ✅ Less space inside content blocks */
+    max-width: 500px; /* ✅ Narrower content */
+    margin: 20px auto; /* ✅ Reduced margin */
+}
+
+
+body {
+    font-size: 14px; /* ✅ Slightly smaller text */
+}
+
+.alert {
+    font-size: 14px; /* ✅ Ensures alerts don’t stretch */
+}
+
+
+/* Height restrictions output box */
+#heightRestrictionNotice {
+    min-height: 60px; /* ✅ Ensures uniform height */
+}
+
+.button-container {
+    display: flex; /* ✅ Aligns buttons in a row */
+    justify-content: center; /* ✅ Centers buttons horizontally */
+    gap: 10px; /* ✅ Adds space between buttons */
+    margin-bottom: 15px; /* ✅ Prevents overcrowding with other elements */
+}
+
+.button-container button {
+    padding: 10px 15px; /* ✅ Ensures uniform button size */
+    font-size: 16px;
+}
