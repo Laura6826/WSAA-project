@@ -10,7 +10,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById("carParkDropdown").addEventListener("change", async function () {
         const selectedId = this.value;
         const resultContainer = document.getElementById("checkFreeSpaces");
-    
+
+        // ✅ Hide previous opening hours results
+        document.getElementById("openingHoursResult").classList.add("d-none"); // ✅ Hide previous results
+        document.getElementById("openingHoursContent").innerHTML = ""; // ✅ Clear old data
+
         if (!selectedId) {
             resultContainer.classList.add("d-none");
             resultContainer.innerText = "";
@@ -60,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedId = document.getElementById("carParkDropdown").value;
         if (!selectedId) {
             openingHoursContainer.innerHTML = "<p>Please select a car park first.</p>";
-            openingHoursResult.style.display = "block";
+            openingHoursResult.classList.remove("d-none");
             return;
         }
 
@@ -72,25 +76,20 @@ document.addEventListener("DOMContentLoaded", function () {
             const todayHours = await response.json();
             console.log("✅ API Response:", todayHours);
 
-            // ✅ Show special message for 24-hour car parks with no times
-            if (todayHours.message) {
-                openingHoursContainer.innerHTML = `<p>${todayHours.message}</p>`;
-            } else {
-                openingHoursContainer.innerHTML =
-                    todayHours.opening_time && todayHours.closing_time
-                        ? `<p><strong>${todayHours.day}:</strong> ${todayHours.opening_time} - ${todayHours.closing_time}</p>`
-                        : `<p><strong>${todayHours.day}:</strong> ${todayHours.status || "Open as usual"}</p>`;
-            }
+            openingHoursContainer.innerHTML = todayHours.message
+                ? `<p>${todayHours.message}</p>`
+                : `<p><strong>${todayHours.day}:</strong> ${todayHours.opening_time || "N/A"} - ${todayHours.closing_time || "N/A"}</p>`;
 
-            openingHoursResult.style.display = "block";
+            openingHoursResult.classList.remove("d-none"); // ✅ Make visible
 
         } catch (error) {
             console.error("❌ Error fetching opening hours:", error);
             openingHoursContainer.innerHTML = "<p>No data available.</p>";
-            openingHoursResult.style.display = "block";
+            openingHoursResult.classList.remove("d-none");
         }
     });
 });
+
 
 // Function to update current time dynamically
 function updateCurrentTime() {

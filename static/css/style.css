@@ -24,18 +24,6 @@ body {
     margin-bottom: 10px;
 }
 
-/* Check availability button */
-button {
-    width: 100%;
-    font-size: 1.2rem;
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    text-align: center;
-    border: 2px solid transparent;
-}
-
 /* Free spaces alert */
 #checkFreeSpaces {
     font-weight: bold;
