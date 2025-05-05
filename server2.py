@@ -1,6 +1,7 @@
 import logging
-import requests
 import json 
+import requests
+import sys 
 from flask import Flask, request, jsonify, render_template
 from schema.schema import CarParkSchema, OpeningHoursSchema
 from marshmallow import ValidationError
@@ -16,8 +17,15 @@ car_parks_dao = CarParksDAO()
 opening_hours_dao = OpeningHoursDAO()
 live_spaces_dao = LiveSpacesDAO()
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
+# ✅ Ensuring logs print to terminal
+logging.basicConfig(
+    level=logging.DEBUG, 
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+
+API_URL = "https://data.corkcity.ie/en_GB/api/3/action/datastore_search_sql"
+RESOURCE_ID = "f4677dac-bb30-412e-95a8-d3c22134e3c0"
 
 # Root endpoint
 # Check if the API is reachable; http://127.0.0.1:5000/
@@ -35,23 +43,28 @@ def get_car_parks():
     car_parks = car_parks_dao.get_all_car_parks()  # ✅ Ensure car_parks is correctly retrieved
     live_data = live_spaces_dao.fetch_live_spaces()
 
-    logging.debug("🔍 Full Live API Response: %s", json.dumps(live_data, indent=2))  
+    logging.debug("🔍 Full Live API Response: %s", json.dumps(live_data, indent=2))
+
+    # Debug database car park IDs
+    logging.debug("🔍 Database Car Park IDs: %s", [str(park["id"]) for park in car_parks])
+
+    # Debug live API car park IDs
+    logging.debug("🔍 Live API Car Park IDs: %s", [str(item.get("car_park_id")) for item in live_data])
 
     for park in car_parks:
         park_id = str(park["id"])  # Convert database ID to string
 
-        # ✅ Debugging: Print each car park ID before merging
-        logging.debug("🔍 Checking park ID: %s", park_id)
-
-        # ✅ Debug live API entry format before merging
-        for item in live_data:
-            logging.debug("🔍 Live API item structure: %s", item)
-
-        # ✅ Update key name to match live API structure
-        park["free_spaces"] = next(
-            (item.get("free_spaces", "Unavailable") for item in live_data if str(item.get("car_park_id")) == park_id),
-            "Unavailable"
+        # ✅ Check for an exact match between database & live API
+        matching_live_data = next(
+            (item for item in live_data if str(item.get("car_park_id")) == park_id), 
+            None
         )
+
+        # ✅ Assign free spaces if matching data is found
+        if matching_live_data:
+            park["free_spaces"] = matching_live_data.get("free_spaces", "Unavailable")
+        else:
+            park["free_spaces"] = "Unavailable"
 
     return jsonify(car_parks)
 
@@ -59,16 +72,18 @@ def get_car_parks():
 # curl -X GET http://
 @app.route('/api/car-parks/<int:car_park_id>', methods=['GET'])
 def get_car_park_availability(car_park_id):
-    # Fetch static car park details
-    car_park = next((park for park in car_parks_dao.get_all_car_parks() if park["id"] == car_park_id), None)
-    if not car_park:
-        return jsonify({"error": "Car park not found"}), 404
+    live_data = fetch_live_spaces()
+    
+    logging.debug("🔍 Live Data Retrieved: %s", json.dumps(live_data, indent=2))
+    logging.debug("🔍 Searching for Car Park ID: %s", car_park_id)
 
-    # Fetch live availability data
-    live_data = live_spaces_dao.fetch_live_spaces()
-    car_park["free_spaces"] = next((item.get("free_spaces", "Unavailable") for item in live_data if item.get("id") == str(car_park_id)), "Unavailable")
+    matching_live_data = next((item for item in live_data if str(item.get("car_park_id")) == str(car_park_id)), None)
 
-    return jsonify(car_park)
+    if matching_live_data:
+        return jsonify({"car_park_id": car_park_id, "free_spaces": matching_live_data.get("free_spaces", "Unavailable")})
+    else:
+        logging.error(f"❌ No live data found for car park {car_park_id}")
+        return jsonify({"car_park_id": car_park_id, "free_spaces": "No live data available"})
 
 # CRUD operations for Car Parks
 # Fetch all car parks
@@ -119,10 +134,8 @@ def create_car_park():
 def update_car_park(car_park_id):
     """
     Updates an existing car park with new details.
-
     Args:
         car_park_id (int): The ID of the car park to update.
-
     Returns:
         JSON response: Success or failure message.
     """
@@ -273,5 +286,6 @@ def delete_opening_hours(opening_hours_id):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    logging.debug("Starting Flask server on http://127.0.0.1:5000")
     print("Starting Flask server on http://127.0.0.1:5000")
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)  # ✅ Disables reloader to prevent duplicated logs

@@ -7,36 +7,40 @@ document.addEventListener("DOMContentLoaded", async function () {
     updateCurrentTime();
     setInterval(updateCurrentTime, 1000);
 
-    // Add event listener to automatically fetch availability on dropdown selection
     document.getElementById("carParkDropdown").addEventListener("change", async function () {
         const selectedId = this.value;
-        if (!selectedId) return;
-
+        const resultContainer = document.getElementById("checkFreeSpaces");
+    
+        if (!selectedId) {
+            resultContainer.classList.add("d-none");
+            resultContainer.innerText = "";
+            return;
+        }
+    
         try {
             const response = await fetch(`/api/car-parks/${selectedId}`);  
             if (!response.ok) throw new Error(`❌ Server Error: ${response.status} ${response.statusText}`);
-
+    
             const carPark = await response.json();
             console.log("🔍 Live free spaces:", carPark.free_spaces);
-
-            const freeSpaces = carPark.free_spaces;
-            const resultContainer = document.getElementById("checkFreeSpaces");
+    
+            resultContainer.classList.remove("d-none");
             resultContainer.className = "alert mt-3";
-
-            if (freeSpaces === "Closed") {
+    
+            // ✅ Ensure the frontend correctly updates based on live availability
+            if (carPark.free_spaces === "Closed") {
                 resultContainer.innerText = "This car park is closed.";
                 resultContainer.classList.add("alert-warning");
-            } else if (parseInt(freeSpaces) > 0) {
-                resultContainer.innerText = `Yes, ${freeSpaces} free spaces available.`;
+            } else if (parseInt(carPark.free_spaces) > 0) {
+                resultContainer.innerText = `Yes, ${carPark.free_spaces} free spaces available.`;
                 resultContainer.classList.add("alert-success");
             } else {
                 resultContainer.innerText = "No, the car park is full.";
                 resultContainer.classList.add("alert-danger");
             }
-
-            resultContainer.classList.remove("d-none");
         } catch (error) {
             console.error("❌ Error fetching availability:", error);
+            resultContainer.innerText = "No live data available.";
         }
     });
 });
