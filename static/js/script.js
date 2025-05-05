@@ -26,8 +26,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     
             resultContainer.classList.remove("d-none");
             resultContainer.className = "alert mt-3";
-    
-            // ✅ Ensure the frontend correctly updates based on live availability
+
             if (carPark.free_spaces === "Closed") {
                 resultContainer.innerText = "This car park is closed.";
                 resultContainer.classList.add("alert-warning");
@@ -45,6 +44,54 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+    const showOpeningHoursBtn = document.getElementById("toggleOpeningHoursBtn");
+    const openingHoursContainer = document.getElementById("openingHoursContent");
+    const openingHoursResult = document.getElementById("openingHoursResult");
+
+    if (!showOpeningHoursBtn) {
+        console.error("❌ 'Show Opening Hours' button not found.");
+        return;
+    }
+
+    showOpeningHoursBtn.addEventListener("click", async function () {
+        console.log("✅ 'Show Opening Hours' button clicked!");
+
+        const selectedId = document.getElementById("carParkDropdown").value;
+        if (!selectedId) {
+            openingHoursContainer.innerHTML = "<p>Please select a car park first.</p>";
+            openingHoursResult.style.display = "block";
+            return;
+        }
+
+        try {
+            console.log(`🔍 Fetching opening hours for Car Park ID ${selectedId}...`);
+            const response = await fetch(`/api/opening-hours/${selectedId}`);
+            if (!response.ok) throw new Error(`❌ Server Error: ${response.status}`);
+
+            const todayHours = await response.json();
+            console.log("✅ API Response:", todayHours);
+
+            // ✅ Show special message for 24-hour car parks with no times
+            if (todayHours.message) {
+                openingHoursContainer.innerHTML = `<p>${todayHours.message}</p>`;
+            } else {
+                openingHoursContainer.innerHTML =
+                    todayHours.opening_time && todayHours.closing_time
+                        ? `<p><strong>${todayHours.day}:</strong> ${todayHours.opening_time} - ${todayHours.closing_time}</p>`
+                        : `<p><strong>${todayHours.day}:</strong> ${todayHours.status || "Open as usual"}</p>`;
+            }
+
+            openingHoursResult.style.display = "block";
+
+        } catch (error) {
+            console.error("❌ Error fetching opening hours:", error);
+            openingHoursContainer.innerHTML = "<p>No data available.</p>";
+            openingHoursResult.style.display = "block";
+        }
+    });
+});
+
 // Function to update current time dynamically
 function updateCurrentTime() {
     document.getElementById('currentTime').innerText = new Date().toLocaleTimeString("en-GB", { hour12: false });
@@ -57,7 +104,7 @@ async function fetchCarParks() {
         if (!response.ok) throw new Error(`Server Error: ${response.status} ${response.statusText}`);
 
         const data = await response.json();
-        console.log("API response received:", data); // Debugging
+        console.log("API response received:", data);
 
         populateDropdown(["carParkDropdown", "updateCarParkDropdown", "deleteCarParkDropdown"], data);
     } catch (error) {
@@ -79,7 +126,7 @@ function populateDropdown(dropdownIds, parkingData) {
 
         parkingData.forEach(park => {
             const option = document.createElement("option");
-            option.value = park.id; // Set the ID for later retrieval
+            option.value = park.id;
             option.innerText = park.name;
             dropdown.appendChild(option);
         });
@@ -88,35 +135,5 @@ function populateDropdown(dropdownIds, parkingData) {
     });
 }
 
-
-// Manage car park CRUD operations (Add, Update, Delete)
-async function manageCarPark(action) {
-    const id = document.getElementById(`${action}CarParkDropdown`)?.value;
-    const name = document.getElementById(`${action}CarParkName`)?.value?.trim();
-
-    if (action !== "delete" && (!id || !name)) {
-        alert(`Please provide valid ${action} details.`);
-        return;
-    }
-
-    const method = action === "delete" ? "DELETE" : (action === "add" ? "POST" : "PUT");
-    const body = action !== "delete" ? JSON.stringify({ name }) : null;
-
-    try {
-        const response = await fetch(`/api/car-parks${action !== "add" ? "/" + id : ""}`, {
-            method,
-            headers: { "Content-Type": "application/json" },
-            body
-        });
-
-        if (!response.ok) throw new Error(`Failed to ${action} car park. Status: ${response.status}`);
-        console.log(`Car park ${action} successful`);
-
-        await fetchCarParks(); // Refresh dropdowns
-        if (name) document.getElementById(`${action}CarParkName`).value = "";
-    } catch (error) {
-        console.error(`Error ${action}ing car park:`, error);
-    }
-}
 
 

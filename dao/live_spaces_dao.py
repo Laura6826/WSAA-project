@@ -1,9 +1,10 @@
 # WSAA-project: Web Services and Applications.
 # DAO (Data Access Object) for Parking data.
 # Author: Laura Lyons
+
 import logging
-import requests
 import json 
+import requests
 
 API_URL = "https://data.corkcity.ie/en_GB/api/3/action/datastore_search_sql"
 RESOURCE_ID = "f4677dac-bb30-412e-95a8-d3c22134e3c0"
