@@ -7,17 +7,13 @@ import os
 import requests
 from datetime import datetime
 from flask import Flask, request, jsonify, render_template
-from schema.schema import CarParkSchema, OpeningHoursSchema
-from marshmallow import ValidationError
+from pymysql.err import MySQLError
 
 dao = CarParksDAO()
 if dao.connection.open:
     print("✅ Successfully connected to MySQL through DAO!")
 else:
     print("❌ Connection failed!")
-
-# Force Flask Debug Mode
-os.environ["FLASK_DEBUG"] = "1"
 
 # Initialize Flask app
 app = Flask(__name__, static_folder='static')
@@ -33,7 +29,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)]  # Ensures logs print in the terminal
 )
 
-print("Flask is starting...") # Print message to indicate Flask is starting
+# print("Flask is starting...") # Print message to indicate Flask is starting
 
 API_URL = "https://data.corkcity.ie/en_GB/api/3/action/datastore_search_sql"
 RESOURCE_ID = "f4677dac-bb30-412e-95a8-d3c22134e3c0"
@@ -53,7 +49,8 @@ def list_routes():
     output = {rule.rule: list(rule.methods) for rule in app.url_map.iter_rules()}
     return jsonify(output)
 
-# Fetch live parking spaces **independently**
+# Fetch live parking spaces
+
 def fetch_live_spaces():
     """ Fetch live parking spaces from the API """
     try:
@@ -188,7 +185,6 @@ def get_height_restriction(car_park_id):
 # Add a car park
 # curl -X POST http://
 
-
 @app.route('/api/add-car-park', methods=['POST'])
 def add_car_park():
     try:
@@ -200,6 +196,9 @@ def add_car_park():
         new_id = car_parks_dao.create_car_park(name, height_restriction)
 
         print("🔍 Debugging: Opening Hours Received in Flask", opening_hours)  # ✅ Debugging
+
+        if not name or name.strip() == "":
+            return jsonify({"error": "Car park name cannot be empty"}), 400
 
         if not opening_hours:
             return jsonify({"error": "Opening hours data is missing!"}), 400
@@ -213,7 +212,7 @@ def add_car_park():
 
         return jsonify({"message": f"Car park '{name}' added with full weekly hours!", "car_park_id": new_id})
 
-    except Exception as e:
+    except (KeyError, ValueError, TypeError) as e:  # Replace with specific exceptions
         print(f"❌ Server error: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
 
@@ -221,6 +220,7 @@ def add_car_park():
 # Add opening hours
 @app.route('/api/add-opening-hours', methods=['POST'])
 def add_opening_hours():
+    """ Adds opening hours for a car park """
     data = request.json
     car_park_id = data.get('car_park_id')  # ✅ Links to car park ID
     opening_time = data.get('opening_time')
@@ -247,6 +247,43 @@ def update_opening_hours(openinghours_id):
         openinghours_id, data["day"], data["opening_time"], data["closing_time"], data["status"]
     )
     return jsonify({"message": "Opening hours updated."}) if success else jsonify({"message": "Update failed."})
+
+# Delete opening hours for a car park
+@app.route('/delete_car_park', methods=['POST'])
+def delete_car_park():
+    """Deletes a car park and its associated opening hours with full error handling."""
+    
+    car_park_id = request.form.get('car_park_id')  # Extract car park ID from the request
+
+    if not car_park_id or not car_park_id.isdigit():
+        return jsonify({"message": "Invalid car park ID provided."}), 400
+
+    # Check if car park exists before attempting deletion
+    car_park_exists = car_parks_dao.get_car_park_by_id(car_park_id)
+
+    if not car_park_exists:
+        return jsonify({"message": "Error: Car park not found."}), 404
+
+    try:
+        with car_parks_dao.connection.cursor() as cursor:
+            cursor.execute("START TRANSACTION")
+            
+            # Delete opening hours first
+            cursor.execute("DELETE FROM openinghours WHERE car_park_id = %s", (car_park_id,))
+            
+            # Delete car park
+            cursor.execute("DELETE FROM carparkdetails WHERE id = %s", (car_park_id,))
+            
+            cursor.execute("COMMIT")
+        
+        return jsonify({"message": "Car park and opening hours deleted successfully."}), 200
+
+    except MySQLError as err:
+        cursor.execute("ROLLBACK")  # Rollback in case of failure
+        logging.error(f"Transaction Error: {err}")
+        return jsonify({"message": "Database transaction failed. Car park was not deleted."}), 500
+
+
 
 # Start Flask Server
 if __name__ == "__main__":

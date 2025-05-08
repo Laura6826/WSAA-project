@@ -37,7 +37,7 @@ body {
 .content {
     background: rgba(255, 255, 255, 0.8);
     border-radius: 10px;
-    padding: 30px; /* ✅ Increased padding for better spacing */
+    padding: 30px; 
     max-width: 600px;
     margin: 50px auto;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
@@ -70,136 +70,144 @@ input {
     border-radius: 5px;
 }
 
-/* toggleOpeningHoursBtn*/
+/* Button styles */
+button {
+    padding: 10px 15px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 2px solid rgb(0, 12, 2); 
+}
+
+/* Specific Button Colors */
 #toggleOpeningHoursBtn {
     background-color: rgb(17, 183, 248);
-    color: rgb(3, 3, 3);
-    border: 2px solid rgb(0, 12, 2);
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 10px;
-    cursor: pointer;
+    color: black;
 }
 
-/* toggleHeightRestrictionBtn*/
-#toggleHeightRestrictionBtn{
+#toggleHeightRestrictionBtn {
     background-color: rgb(173, 13, 13);
-    color: rgb(243, 241, 241);
-    border: 2px solid rgb(0, 12, 2);
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 10px;
-    cursor: pointer;
+    color: white;
 }
-/* Add car park button */
+
 #addCarParkButton {
     background-color: rgb(71, 195, 85);
-    color: rgb(3, 3, 3);
-    border: 2px solid rgb(0, 12, 2);
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 10px;
-    cursor: pointer;
+    color: black;
 }
 
-/* update car park button */
 #updateCarParkButton {
     background-color: rgb(216, 230, 27);
-    color: rgb(8, 6, 6);
-    border: 2px solid rgb(0, 12, 2);
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 10px;
-    cursor: pointer;
+    color: black;
 }
 
-/* Delete car park button */
 #deleteCarParkButton {
     background-color: rgb(230, 27, 27);
-    color: rgb(250, 246, 246);
-    border: 2px solid rgb(0, 12, 2);
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 10px;
-    cursor: pointer;
+    color: white;
 }
+
 /* Output Box Styling */
 .alert {
-    min-height: 60px; /* ✅ Consistent box size */
+    min-height: 60px; 
     padding: 12px;
-    font-size: 16px;
+    font-size: 14px;
     text-align: center;
-    max-height: 200px; /* ✅ Prevents excessive box growth */
-    overflow-y: auto; /* ✅ Allows scrolling for long output */
+    max-height: 120px;
+    overflow-y: auto; 
 }
-
-.flex-fill {
-    margin-bottom: 8px; /* ✅ Less space between buttons */
-}
-
-.alert {
-    min-height: 40px; /* ✅ Smaller box height */
-    max-height: 100px; /* ✅ Prevents excessive growth */
-    overflow-y: auto; /* ✅ Keeps long outputs scrollable within box */
-}
-
-
-.container {
-    padding: 10px; /* ✅ Reduced padding */
-    max-width: 500px; /* ✅ More compact width */
-}
-
-.content {
-    padding: 15px; /* ✅ Less space inside content blocks */
-    max-width: 500px; /* ✅ Narrower content */
-    margin: 20px auto; /* ✅ Reduced margin */
-}
-
-
-body {
-    font-size: 14px; /* ✅ Slightly smaller text */
-}
-
-.alert {
-    font-size: 14px; /* ✅ Ensures alerts don’t stretch */
-}
-
 
 /* Height restrictions output box */
 #heightRestrictionNotice {
-    min-height: 60px; /* ✅ Ensures uniform height */
+    min-height: 60px;
 }
 
+/* Button alignment */
 .button-container {
-    display: flex; /* ✅ Aligns buttons in a row */
-    justify-content: center; /* ✅ Centers buttons horizontally */
-    gap: 10px; /* ✅ Adds space between buttons */
-    margin-bottom: 15px; /* ✅ Prevents overcrowding with other elements */
+    display: flex; 
+    justify-content: center; 
+    gap: 10px; 
+    margin-bottom: 15px; 
 }
 
 .button-container button {
-    padding: 10px 15px; /* ✅ Ensures uniform button size */
+    padding: 10px 15px;
     font-size: 16px;
 }
 
-input[type="time"] {
-    display: block;
-    margin-bottom: 10px;
-    padding: 5px;
+/* Styling for opening hours buttons */
+.opening-hours-table button {
+    padding: 6px 12px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-.opening-hours-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-    align-items: center;
-    text-align: left;
+.same-as-above-btn {
+    background-color: #28a745; /* ✅ Green */
+    color: white;
 }
-.opening-hours-grid div {
-    font-weight: bold;
+
+.same-as-above-btn:hover {
+    background-color: #23963c; /* ✅ Darker green */
 }
-.opening-hours-grid input {
-    width: 100%;
+
+.closed-btn {
+    background-color: #dc3545; /* ✅ Red */
+    color: white;
+}
+
+.closed-btn:hover {
+    background-color: #c82333; /* ✅ Darker red */
+}
+
+/* Disabled input styling */
+input:disabled {
+    background-color: #ddd;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* Drop down styling for 'Delete Car Park */
+#deleteCarParkDropdown {
+    appearance: none; /* ✅ Removes unwanted button styling */
+    border-radius: 4px;
     padding: 5px;
+    font-size: 16px;
+}
+
+/* Responsive Design */
+.d-none {
+    display: none;
+}
+
+#deleteCarParkDropdown {
+    appearance: none; /* ✅ Prevent dropdown from looking like a button */
+}
+
+/* This is a flexbox container that stacks its children vertically. */
+.stacked-elements {
+    display: flex;
+    flex-direction: column; /* ✅ Stack elements vertically */
+    gap: 15px; /* ✅ Adds spacing between elements */
+    align-items: center; /* ✅ Centers elements */
+}
+
+select, .confirm-selection-btn, .delete-btn {
+    width: 250px; /* ✅ Matching width for all elements */
+    padding: 10px;
+}
+
+.confirm-selection-btn {
+    background-color: yellow;
+    color: black;
+    font-weight: bold;
+    border: 1px solid black; /* ✅ Add border */
+}
+
+.delete-btn {
+    background-color: red;
+    color: white;
+    font-weight: bold;
 }
 

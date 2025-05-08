@@ -59,6 +59,7 @@
         </div>
 
         <!-- Car Park Forms (Initially Hidden) -->
+        <!-- 'Add Car Park' Forms (Initially Hidden) -->
         <div id="addCarParkForm" class="d-none">
             <h3>Add Car Park</h3>
             <label for="carParkName"><strong>Car Park Name:</strong></label>
@@ -71,37 +72,110 @@
                 <thead>
                     <tr>
                         <th>Day</th>
-                        <th>Opening Time (24-Hour Format)</th>
-                        <th>Closing Time (24-Hour Format)</th>
+                        <th>Opening Time</th>
+                        <th>Closing Time</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td>Monday</td><td><input type="time" id="monday_open"></td><td><input type="time" id="monday_close"></td></tr>
-                    <tr><td>Tuesday</td><td><input type="time" id="tuesday_open"></td><td><input type="time" id="tuesday_close"></td></tr>
-                    <tr><td>Wednesday</td><td><input type="time" id="wednesday_open"></td><td><input type="time" id="wednesday_close"></td></tr>
-                    <tr><td>Thursday</td><td><input type="time" id="thursday_open"></td><td><input type="time" id="thursday_close"></td></tr>
-                    <tr><td>Friday</td><td><input type="time" id="friday_open"></td><td><input type="time" id="friday_close"></td></tr>
-                    <tr><td>Saturday</td><td><input type="time" id="saturday_open"></td><td><input type="time" id="saturday_close"></td></tr>
-                    <tr><td>Sunday</td><td><input type="time" id="sunday_open"></td><td><input type="time" id="sunday_close"></td></tr>
+                    <tr>
+                        <td>Monday</td>
+                        <td><input type="time" id="monday_open"></td>
+                        <td><input type="time" id="monday_close"></td>
+                        <td>
+                            <button onclick="setClosed('monday')" class="closed-btn">Closed</button>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tuesday</td>
+                        <td><input type="time" id="tuesday_open"></td>
+                        <td><input type="time" id="tuesday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('tuesday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('tuesday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Wednesday</td>
+                        <td><input type="time" id="wednesday_open"></td>
+                        <td><input type="time" id="wednesday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('wednesday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('wednesday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Thursday</td>
+                        <td><input type="time" id="thursday_open"></td>
+                        <td><input type="time" id="thursday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('thursday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('thursday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Friday</td>
+                        <td><input type="time" id="friday_open"></td>
+                        <td><input type="time" id="friday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('friday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('friday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Saturday</td>
+                        <td><input type="time" id="saturday_open"></td>
+                        <td><input type="time" id="saturday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('saturday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('saturday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sunday</td>
+                        <td><input type="time" id="sunday_open"></td>
+                        <td><input type="time" id="sunday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('sunday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('saturday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
-        </div>
+            
             <!-- ✅ Checkbox for 24-hour status -->
             <label for="is24Hours">Open 24 Hours?</label>
             <input type="checkbox" id="is24Hours">
-        
             <button onclick="addCarPark()">Add Car Park</button>
         </div>
+
+        <!-- 'Update Car Park' Forms (Initially Hidden) -->
         <div id="updateCarParkForm" class="d-none">
             <select id="updateCarParkDropdown"></select>
             <input type="text" id="newCarParkName" placeholder="Enter New Name">
             <button onclick="updateCarPark()">Update Car Park</button>
         </div>
-
+        
+        <!-- 'Delete Car Park' Forms (Initially Hidden) -->
         <div id="deleteCarParkForm" class="d-none">
-            <select id="deleteCarParkDropdown"></select>
-            <button onclick="deleteCarPark()">Delete Car Park</button>
+            <p><strong>Please choose the car park you wish to delete</strong></p>
+
+            <div class="stacked-elements"> 
+                <select id="deleteCarParkDropdown"></select> <!-- ✅ Dropdown first -->
+                <button class="confirm-selection-btn" onclick="showDeleteCarParkForm()">Click to confirm selection</button> <!-- ✅ Properly positioned -->
+                <div id="deleteCarParkDetails" class="d-none">
+                    <p class="text-danger fw-bold">Are you sure you want to delete this car park?</p>
+                    <button class="delete-btn" onclick="deleteCarPark()">Delete Car Park</button> <!-- ✅ Delete action -->
+                </div>
+            </div>
         </div>
+
+
+        <!-- Footer Section -->
+        <footer class="text-center mt-5">
+            <p>&copy; 2023 Cork City Parking Checker. All rights reserved.</p>
+            <p>Developed by Laura Lyons</p>
     </div>
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

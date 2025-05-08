@@ -26,6 +26,7 @@ class OpeningHoursDAO:
             raise
 
     def execute_query(self, sql, params=None, fetch=False, fetch_one=False):
+        """Executes a SQL query and returns the result."""
         if not self.connection or not self.connection.open:
             logging.error("No active database connection.")
             return None
@@ -41,6 +42,7 @@ class OpeningHoursDAO:
             return False if not fetch else None
 
     def close_connection(self):
+        """Closes the database connection."""
         try:
             if self.connection and self.connection.open:
                 self.connection.close()
@@ -54,7 +56,6 @@ class OpeningHoursDAO:
         return self.execute_query(sql, fetch=True)
 
     def add_opening_hours(self, car_park_id, day_of_week, opening_time, closing_time, status="active"):
-
         """Adds new opening hours for a car park."""
         sql = """
             INSERT INTO openinghours (car_park_id, day_of_week, opening_time, closing_time, status)
