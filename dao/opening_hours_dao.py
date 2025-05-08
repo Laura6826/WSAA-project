@@ -53,27 +53,28 @@ class OpeningHoursDAO:
         sql = "SELECT * FROM openinghours"
         return self.execute_query(sql, fetch=True)
 
+    def add_opening_hours(self, car_park_id, day_of_week, opening_time, closing_time, status="active"):
 
-    def add_opening_hours(self, car_park_id, day, opening_time, closing_time, status):
         """Adds new opening hours for a car park."""
         sql = """
-            INSERT INTO openinghours (car_park_id, day, opening_time, closing_time, status)
+            INSERT INTO openinghours (car_park_id, day_of_week, opening_time, closing_time, status)
             VALUES (%s, %s, %s, %s, %s)
         """
-        return self.execute_query(sql, (car_park_id, day, opening_time, closing_time, status))
+        return self.execute_query(sql, (car_park_id, day_of_week, opening_time, closing_time, status))
 
     def get_opening_hours_for_car_park(self, car_park_id):
         """Retrieves opening hours for a specific car park."""
         sql = "SELECT * FROM openinghours WHERE car_park_id = %s"
         return self.execute_query(sql, (car_park_id,), fetch=True)
 
-    def update_opening_hours(self, openinghours_id, day, opening_time, closing_time, status):
+    def update_opening_hours(self, openinghours_id, day_of_week, opening_time, closing_time, status):
+        """Updates opening hours for a specific entry."""
         sql = """
             UPDATE openinghours
             SET day = %s, opening_time = %s, closing_time = %s, status = %s
             WHERE id = %s
         """
-        return self.execute_query(sql, (day, opening_time, closing_time, status, openinghours_id))
+        return self.execute_query(sql, (day_of_week, opening_time, closing_time, status, openinghours_id))
 
     def delete_opening_hours(self, openinghours_id):
         """Deletes an opening hours entry by ID."""

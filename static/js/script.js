@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 resultContainer.innerText = `Yes, ${carPark.free_spaces} free spaces available.`;
                 resultContainer.classList.add("alert-success");
             } else {
-                resultContainer.innerText = "No, the car park is full.";
+                rresultContainer.innerText = "There is no verified data on space availability for this car park.";
                 resultContainer.classList.add("alert-danger");
             }
         } catch (error) {
@@ -150,8 +150,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const restrictionData = await response.json();
             console.log("✅ API Response:", restrictionData);
 
+            let heightFormatted = restrictionData.height_restriction.replace("mm", "m"); // ✅ Corrects unit label
+
             heightRestrictionContainer.innerHTML = restrictionData.height_restriction
-                ? `<p><strong>Height Restriction:</strong> ${restrictionData.height_restriction}m</p>`
+                ? `<p><strong>Height Restriction:</strong> ${heightFormatted}</p>`
                 : `<p>${restrictionData.message}</p>`;
 
             heightRestrictionNotice.classList.remove("d-none"); // ✅ Make visible
@@ -163,6 +165,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
 
 // Function to update current time dynamically
 function updateCurrentTime() {
@@ -189,16 +192,26 @@ document.addEventListener("DOMContentLoaded", function () {
 async function fetchCarParks() {
     try {
         const response = await fetch("/api/car-parks");
-        if (!response.ok) throw new Error(`Server Error: ${response.status} ${response.statusText}`);
+        const carParks = await response.json();
 
-        const data = await response.json();
-        console.log("API response received:", data);
+        const dropdown = document.getElementById("carParkDropdown");
+        dropdown.innerHTML = '<option value="">Select Car Park</option>'; // ✅ Clear old options
 
-        populateDropdown(["carParkDropdown", "updateCarParkDropdown", "deleteCarParkDropdown"], data);
+        carParks.forEach(carPark => {
+            const option = document.createElement("option");
+            option.value = carPark.id;
+            option.textContent = carPark.name;
+            dropdown.appendChild(option);
+        });
+
+        console.log("✅ Dropdown updated with new car park list!");
+
     } catch (error) {
-        console.error("Error fetching car park data:", error);
+        console.error("❌ Error fetching car parks:", error);
     }
 }
+
+
 
 // Function to populate multiple dropdowns dynamically
 function populateDropdown(dropdownIds, parkingData) {
@@ -223,18 +236,22 @@ function populateDropdown(dropdownIds, parkingData) {
     });
 }
 
-// Function to update car park details
 async function addCarPark() {
-    const carParkName = document.getElementById("newCarParkName").value;
-    const heightRestriction = document.getElementById("newCarParkHeight").value;
-    const openingTime = document.getElementById("newOpeningTime").value;
-    const closingTime = document.getElementById("newClosingTime").value;
-    const is24Hours = document.getElementById("is24Hours").checked; // ✅ Checkbox
+    const carParkName = document.getElementById("carParkName").value;
+    const heightRestriction = document.getElementById("heightRestriction").value;
+    const is24Hours = document.getElementById("is24Hours").checked;
 
-    if (!carParkName) {
-        alert("Please enter a car park name.");
-        return;
-    }
+    const openingHours = {
+        "Monday": [document.getElementById("monday_open").value, document.getElementById("monday_close").value],
+        "Tuesday": [document.getElementById("tuesday_open").value, document.getElementById("tuesday_close").value],
+        "Wednesday": [document.getElementById("wednesday_open").value, document.getElementById("wednesday_close").value],
+        "Thursday": [document.getElementById("thursday_open").value, document.getElementById("thursday_close").value],
+        "Friday": [document.getElementById("friday_open").value, document.getElementById("friday_close").value],
+        "Saturday": [document.getElementById("saturday_open").value, document.getElementById("saturday_close").value],
+        "Sunday": [document.getElementById("sunday_open").value, document.getElementById("sunday_close").value],
+    };
+
+    console.log("🔍 Debugging: Opening Hours Before Sending", openingHours);
 
     try {
         const response = await fetch('/api/add-car-park', {
@@ -243,21 +260,31 @@ async function addCarPark() {
             body: JSON.stringify({
                 name: carParkName,
                 height_restriction: heightRestriction,
-                opening_time: openingTime,
-                closing_time: closingTime,
-                is_24_hours: is24Hours
+                is_24_hours: is24Hours,
+                opening_hours: openingHours
             })
         });
 
-        const result = await response.json();
-        alert(result.message);
+        await response.json();
+
+        console.log("✅ Car Park Added Successfully!");
+
+        // ✅ Refresh dropdown list immediately after adding a car park
+        await fetchCarParks();
+
+        // ✅ Hide the form automatically after submission
+        document.getElementById("addCarParkForm").classList.add("d-none");
+
     } catch (error) {
         console.error("❌ Error adding car park:", error);
     }
 }
 
 
-//
+
+
+
+// Function to update car park opening hours.
 async function addOpeningHours(carParkId) {
     const openingTime = document.getElementById("newOpeningTime").value;
     const closingTime = document.getElementById("newClosingTime").value;
@@ -281,5 +308,34 @@ async function addOpeningHours(carParkId) {
         console.error("❌ Error adding opening hours:", error);
     }
 }
+
+// 
+async function fetchOpeningHours(carParkId) {
+    try {
+        const response = await fetch(`/api/opening-hours/${carParkId}`);
+        const openingHours = await response.json();
+
+        const openingHoursContainer = document.getElementById("openingHoursContent");
+
+        if (openingHours.is_24_hours) {
+            openingHoursContainer.innerHTML = `<p><strong>This car park is open 24 hours today.</strong></p>`;
+        } else if (openingHours.opening_time && openingHours.closing_time) {
+            const openingTimeFormatted = openingHours.opening_time.slice(0, 5); // ✅ Remove seconds
+            const closingTimeFormatted = openingHours.closing_time.slice(0, 5); // ✅ Remove seconds
+
+            openingHoursContainer.innerHTML = `<p><strong>${openingHours.day}:</strong> ${openingTimeFormatted} - ${closingTimeFormatted}</p>`;
+        } else {
+            openingHoursContainer.innerHTML = "<p>No opening hours available.</p>";
+        }
+
+        document.getElementById("openingHoursResult").classList.remove("d-none"); 
+
+    } catch (error) {
+        console.error("❌ Error fetching opening hours:", error);
+    }
+}
+
+
+
 
 

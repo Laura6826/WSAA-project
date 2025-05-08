@@ -47,6 +47,12 @@ def index():
     logging.debug("Serving the Parking Checker HTML file.")
     return render_template('parking_checker2.html')
 
+@app.route('/api/routes', methods=['GET'])
+def list_routes():
+    from flask import jsonify
+    output = {rule.rule: list(rule.methods) for rule in app.url_map.iter_rules()}
+    return jsonify(output)
+
 # Fetch live parking spaces **independently**
 def fetch_live_spaces():
     """ Fetch live parking spaces from the API """
@@ -124,19 +130,20 @@ def get_all_opening_hours():
 
 @app.route('/api/opening-hours/<int:car_park_id>', methods=['GET'])
 def get_opening_hours(car_park_id):
+    """ Fetch opening hours for a specific car park """
     opening_hours = opening_hours_dao.get_opening_hours_for_car_park(car_park_id)
 
     if not opening_hours:
-        return jsonify({"message": "No opening hours available."})
+        return jsonify({"message": "There is no data available for the opening hours car park."})
 
     today = datetime.today().strftime("%A")
-    now = datetime.now().strftime("%H:%M:%S")  # ✅ Current time
+    now = datetime.now().strftime("%H:%M")  # ✅ Current time
 
     today_hours = next((entry for entry in opening_hours if entry["day_of_week"] == today), None)
 
     if today_hours:
-        opening_time = str(today_hours["opening_time"]) if today_hours["opening_time"] else None
-        closing_time = str(today_hours["closing_time"]) if today_hours["closing_time"] else None
+        opening_time = str(today_hours["opening_time"])[:-3] if today_hours["opening_time"] else None  # ✅ Removes seconds
+        closing_time = str(today_hours["closing_time"])[:-3] if today_hours["closing_time"] else None  # ✅ Removes seconds
         status = today_hours.get("status", "Open as usual")
 
         # ✅ If it's "Open 24 Hours" AND times are NULL, display special message
@@ -157,6 +164,7 @@ def get_opening_hours(car_park_id):
 
     return jsonify({"message": f"No opening hours available for {today}."})
 
+
 # Fetch height restrictions for all car parks (for display)
 # curl -X GET http://127.0.0.1:5000/api/height-restrictions/1
 
@@ -169,7 +177,7 @@ def get_height_restriction(car_park_id):
 
     if restriction:
         height_value = float(restriction["height"])  # ✅ Extract only the numerical value
-        formatted_height = f"{height_value:.2f}m"  # ✅ Format it properly (two decimal places + "m")
+        formatted_height = f"{height_value:.2f}m"  # ✅ Ensure correct unit display
 
         print("✅ Formatted Height Restriction:", formatted_height)
         return jsonify({"height_restriction": formatted_height})  
@@ -180,18 +188,34 @@ def get_height_restriction(car_park_id):
 # Add a car park
 # curl -X POST http://
 
+
 @app.route('/api/add-car-park', methods=['POST'])
 def add_car_park():
-    data = request.json
-    name = data.get('name')
-    height_restriction = data.get('height_restriction')
+    try:
+        data = request.json
+        name = data.get('name')
+        height_restriction = data.get('height_restriction')
+        opening_hours = data.get('opening_hours', {})
 
-    # ✅ Use the existing CarParksDAO instance instead of calling get_db_connection()
-    new_id = car_parks_dao.create_car_park(name, height_restriction)  
+        new_id = car_parks_dao.create_car_park(name, height_restriction)
 
-    return jsonify({"message": f"Car park '{name}' added!", "car_park_id": new_id})
+        print("🔍 Debugging: Opening Hours Received in Flask", opening_hours)  # ✅ Debugging
 
+        if not opening_hours:
+            return jsonify({"error": "Opening hours data is missing!"}), 400
 
+        # ✅ Loop through all days to add opening hours
+        for day, times in opening_hours.items():
+            if times and times[0] and times[1]:  # ✅ Ensure valid times
+                opening_time, closing_time = times
+                opening_hours_dao.add_opening_hours(new_id, day, opening_time, closing_time, "active")
+                print(f"✅ Stored {day}: {opening_time} - {closing_time}")  # ✅ Log each entry stored
+
+        return jsonify({"message": f"Car park '{name}' added with full weekly hours!", "car_park_id": new_id})
+
+    except Exception as e:
+        print(f"❌ Server error: {e}")
+        return jsonify({"error": "Internal Server Error"}), 500
 
 
 # Add opening hours

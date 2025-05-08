@@ -60,24 +60,38 @@
 
         <!-- Car Park Forms (Initially Hidden) -->
         <div id="addCarParkForm" class="d-none">
-            <input type="text" id="newCarParkName" placeholder="Enter Car Park Name">
-            <input type="text" id="newCarParkHeight" placeholder="Enter Height Restriction">
+            <h3>Add Car Park</h3>
+            <label for="carParkName"><strong>Car Park Name:</strong></label>
+            <input type="text" id="carParkName" placeholder="Enter Car Park Name">
         
-            <!-- ✅ New fields for Opening & Closing Hours -->
-            <label for="newOpeningTime">Opening Time:</label>
-            <input type="time" id="newOpeningTime">
+            <label for="heightRestriction"><strong>Height Restriction (m):</strong></label>
+            <input type="number" id="heightRestriction" step="0.1" placeholder="Example: 2.00">
         
-            <label for="newClosingTime">Closing Time:</label>
-            <input type="time" id="newClosingTime">
-        
+            <table class="opening-hours-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Opening Time (24-Hour Format)</th>
+                        <th>Closing Time (24-Hour Format)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Monday</td><td><input type="time" id="monday_open"></td><td><input type="time" id="monday_close"></td></tr>
+                    <tr><td>Tuesday</td><td><input type="time" id="tuesday_open"></td><td><input type="time" id="tuesday_close"></td></tr>
+                    <tr><td>Wednesday</td><td><input type="time" id="wednesday_open"></td><td><input type="time" id="wednesday_close"></td></tr>
+                    <tr><td>Thursday</td><td><input type="time" id="thursday_open"></td><td><input type="time" id="thursday_close"></td></tr>
+                    <tr><td>Friday</td><td><input type="time" id="friday_open"></td><td><input type="time" id="friday_close"></td></tr>
+                    <tr><td>Saturday</td><td><input type="time" id="saturday_open"></td><td><input type="time" id="saturday_close"></td></tr>
+                    <tr><td>Sunday</td><td><input type="time" id="sunday_open"></td><td><input type="time" id="sunday_close"></td></tr>
+                </tbody>
+            </table>
+        </div>
             <!-- ✅ Checkbox for 24-hour status -->
             <label for="is24Hours">Open 24 Hours?</label>
             <input type="checkbox" id="is24Hours">
         
             <button onclick="addCarPark()">Add Car Park</button>
         </div>
-        
-
         <div id="updateCarParkForm" class="d-none">
             <select id="updateCarParkDropdown"></select>
             <input type="text" id="newCarParkName" placeholder="Enter New Name">

@@ -70,10 +70,10 @@ input {
     border-radius: 5px;
 }
 
-/* Add car park button */
-#addCarParkButton {
-    background-color: rgb(71, 195, 85);
-    color: white;
+/* toggleOpeningHoursBtn*/
+#toggleOpeningHoursBtn {
+    background-color: rgb(17, 183, 248);
+    color: rgb(3, 3, 3);
     border: 2px solid rgb(0, 12, 2);
     padding: 10px;
     border-radius: 8px;
@@ -81,6 +81,48 @@ input {
     cursor: pointer;
 }
 
+/* toggleHeightRestrictionBtn*/
+#toggleHeightRestrictionBtn{
+    background-color: rgb(173, 13, 13);
+    color: rgb(243, 241, 241);
+    border: 2px solid rgb(0, 12, 2);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+/* Add car park button */
+#addCarParkButton {
+    background-color: rgb(71, 195, 85);
+    color: rgb(3, 3, 3);
+    border: 2px solid rgb(0, 12, 2);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+/* update car park button */
+#updateCarParkButton {
+    background-color: rgb(216, 230, 27);
+    color: rgb(8, 6, 6);
+    border: 2px solid rgb(0, 12, 2);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+/* Delete car park button */
+#deleteCarParkButton {
+    background-color: rgb(230, 27, 27);
+    color: rgb(250, 246, 246);
+    border: 2px solid rgb(0, 12, 2);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
 /* Output Box Styling */
 .alert {
     min-height: 60px; /* ✅ Consistent box size */
@@ -139,3 +181,25 @@ body {
     padding: 10px 15px; /* ✅ Ensures uniform button size */
     font-size: 16px;
 }
+
+input[type="time"] {
+    display: block;
+    margin-bottom: 10px;
+    padding: 5px;
+}
+
+.opening-hours-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    align-items: center;
+    text-align: left;
+}
+.opening-hours-grid div {
+    font-weight: bold;
+}
+.opening-hours-grid input {
+    width: 100%;
+    padding: 5px;
+}
+

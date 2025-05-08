@@ -10,6 +10,7 @@ import dbconfig as cfg
 logging.basicConfig(level=logging.ERROR)
 
 class CarParksDAO:
+    """ Data Access Object for car park details. """
     def __init__(self):
         try:
             self.connection = pymysql.connect(
@@ -26,6 +27,7 @@ class CarParksDAO:
             raise
 
     def execute_query(self, sql, params=None, fetch=False, fetch_one=False):
+        """ Executes a SQL query and returns the result. """
         if not self.connection or not self.connection.open:
             logging.error("No active database connection.")
             return None
@@ -41,6 +43,7 @@ class CarParksDAO:
             return False if not fetch else None
 
     def close_connection(self):
+        """ Closes the database connection. """
         try:
             if self.connection and self.connection.open:
                 self.connection.close()
@@ -49,12 +52,21 @@ class CarParksDAO:
             logging.error("Error closing connection: %s", err) 
 
     def get_height_restriction(self, car_park_id):
-        sql = "SELECT height FROM carparkdetails WHERE id = %s" 
+        """Retrieves the height restriction for a specific car park."""
+        sql = "SELECT height FROM carparkdetails WHERE id = %s"
         return self.execute_query(sql, (car_park_id,), fetch_one=True)
 
-
     def create_car_park(self, name, height):
+        """Creates a new car park with the given name and height restriction."""
         with self.connection.cursor() as cursor:
+            # ✅ Check if a car park with this name already exists
+            cursor.execute("SELECT COUNT(*) FROM carparkdetails WHERE name = %s", (name,))
+            existing_count = cursor.fetchone()["COUNT(*)"]
+
+            if existing_count > 0:
+                return None  # ✅ Prevent duplicate insertion
+
+            # ✅ If not found, insert the new car park
             sql = "INSERT INTO carparkdetails (name, height) VALUES (%s, %s)"
             cursor.execute(sql, (name, height))
             self.connection.commit()
@@ -62,17 +74,22 @@ class CarParksDAO:
         return new_id
 
     def get_all_car_parks(self):
+        """Retrieves all car parks."""
         with self.connection.cursor() as cursor:
             cursor.execute("SELECT * FROM carparkdetails")
             result = cursor.fetchall()
         return result
 
     def get_car_park_by_id(self, car_park_id):
+        """Retrieves a car park by ID."""
+         # Check if the car park exists before attempting to retrieve
         sql = "SELECT * FROM carparkdetails WHERE id = %s"
         return self.execute_query(sql, (car_park_id,), fetch_one=True)
 
 
     def update_car_park(self, car_park_id, name, height):
+        """Updates the name and height of a car park."""
+         # Check if the car park exists before attempting to update
         with self.connection.cursor() as cursor:
             sql = "UPDATE carparkdetails SET name = %s, height = %s WHERE id = %s"
             cursor.execute(sql, (name, height, car_park_id))
@@ -81,6 +98,8 @@ class CarParksDAO:
         return affected > 0
 
     def delete_car_park(self, car_park_id):
+        """Deletes a car park by ID."""
+         # Check if the car park exists before attempting to delete
         with self.connection.cursor() as cursor:
             sql = "DELETE FROM carparkdetails WHERE id = %s"
             cursor.execute(sql, (car_park_id,))
