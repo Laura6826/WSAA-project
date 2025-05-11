@@ -264,26 +264,31 @@ def delete_car_park():
         return jsonify({"message": "Database transaction failed. Car park was not deleted."}), 500
 
 # Update a car park
-@app.route('/update_car_park', methods=['POST'])
-def update_car_park():
-    data = request.json
-    car_park_id = data.get('id')
-    new_hours = data.get('opening_hours')
-    new_height = data.get('height_restriction')
-    
-    # Check that the car park exists.
+@app.route('/api/car-parks/<int:car_park_id>', methods=['GET'])
+def get_car_park(car_park_id):
     car_park = car_parks_dao.get_car_park_by_id(car_park_id)
     if not car_park:
-        return jsonify({"message": "❌ Error: Car park not found."}), 404
+        return jsonify({"message": "Car park not found."}), 404
 
-    success = car_parks_dao.update_car_park_opening_hours_and_height(car_park_id, new_hours, new_height)
-    if success:
-        return jsonify({"message": "✅ Car park updated successfully."}), 200
-    else:
-        return jsonify({"message": "❌ Error updating car park."}), 500
+    # Retrieve opening hours from your opening hours DAO.
+    opening_hours = opening_hours_dao.get_opening_hours_for_car_park(car_park_id)
+    hours_dict = {}
+    for record in opening_hours:
+        day = record.get("day_of_week")
+        # Basic validation: if times are null and the car park is 24 hours, assume special status.
+        if car_park.get("is_24_hours"):
+            hours_dict[day] = "This car park is open 24 hours"
+        else:
+            hours_dict[day] = {
+                "open": record.get("opening_time"),
+                "close": record.get("closing_time")
+            }
+
+    # Optionally remove the numeric times if the car park is 24 hours.
+    car_park["opening_hours"] = hours_dict
+    return jsonify(car_park)
 
 
-    
 # Start Flask Server
 if __name__ == "__main__":
     logging.debug("Starting Flask server on http://127.0.0.1:5000")

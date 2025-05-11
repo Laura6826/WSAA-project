@@ -96,56 +96,26 @@ class CarParksDAO:
             affected = cursor.rowcount
         return affected > 0
     
-    def update_car_park_opening_hours_and_height(self, car_park_id, new_hours, new_height):
+    def update_car_park_height(self, car_park_id, new_height):
         """
-        Updates:
-        - The height restriction in carparkdetails.
-        - The opening and closing times (and status) for each day in openinghourstable.
+        Updates the height restriction in the carparkdetails table.
         
-        new_hours should be a dict structured like:
-        {
-            "Monday":   {"open": "06:00", "close": "22:00"},
-            "Tuesday":  {"open": "06:00", "close": "22:00"},
-            ...
-        }
+        Parameters:
+        - car_park_id: The ID of the car park to update.
+        - new_height: The new height restriction value.
         
-        If either "open" or "close" is empty for a day, we treat that day as closed.
+        Returns True if the update is successful, otherwise False.
         """
         try:
             with self.connection.cursor() as cursor:
-                # Update the height restriction in carparkdetails.
                 sql_update_details = "UPDATE carparkdetails SET height = %s WHERE id = %s"
                 cursor.execute(sql_update_details, (new_height, car_park_id))
-                
-                # Loop through each day to update opening hours.
-                for day, times in new_hours.items():
-                    # Determine status and times:
-                    if times.get("open", "") == "" or times.get("close", "") == "":
-                        status = "closed"
-                        opening_time = None
-                        closing_time = None
-                    else:
-                        status = "open"
-                        opening_time = times.get("open")
-                        closing_time = times.get("close")
-                    
-                    sql_update_hours = """
-                        UPDATE openinghourstable
-                        SET opening_time = %s, closing_time = %s, status = %s
-                        WHERE car_park_id = %s AND day_of_week = %s
-                    """
-                    cursor.execute(sql_update_hours, 
-                        (opening_time, closing_time, status, car_park_id, day))
-                
-                self.connection.commit()
-                return True
+            self.connection.commit()
+            return True
         except Exception as e:
-            logging.error("Error updating car park: %s", e)
+            logging.error("Error updating car park height: %s", e, exc_info=True)
             return False
-
-
-
-    
+         
     def __del__(self):
         try:
             if self.connection and self.connection.open:

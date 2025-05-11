@@ -2,7 +2,7 @@
 // JAVASCRIPT for car-park space availability in Cork City.
 // Author: Laura Lyons
 
-// This makes showForm available globally
+// Make showForm available globally
 window.showForm = function(formId) {
   console.log("Showing form:", formId);
 
@@ -24,41 +24,27 @@ window.showForm = function(formId) {
   }
 };
 
-// Drop down car park menu and associated space availability.
 document.addEventListener("DOMContentLoaded", async function () {
-    await fetchCarParks(); // ✅ Fetch car park data and populate dropdowns
+    // Fetch initial car parks for dropdowns
+    await fetchCarParks(); 
     updateCurrentTime();
     setInterval(updateCurrentTime, 1000);
 
-    function showForm(formId) {
-        console.log(`🔍 Showing form: ${formId}`);
-
-        // ✅ Hide all forms first
-        document.getElementById("addCarParkForm").classList.add("d-none");
-        document.getElementById("updateCarParkForm").classList.add("d-none");
-        document.getElementById("deleteCarParkForm").classList.add("d-none");
-
-        // ✅ Show the requested form
-        document.getElementById(formId).classList.remove("d-none");
-    }
-
-    // ✅ Attach event listeners to buttons
+    // Attach event listeners to buttons using the global showForm function
     document.getElementById("addCarParkButton").addEventListener("click", function () {
-        showForm("addCarParkForm");
+        window.showForm("addCarParkForm");
     });
 
-    // ✅ Attach event listener AFTER ensuring `showForm` exists globally
-
     document.getElementById("updateCarParkButton").addEventListener("click", function () {
-        showForm("updateCarParkForm"); // ✅ Show the Update Car Park form
-        fetchCarParksForUpdate(); // ✅ Populate dropdown with car parks
+        window.showForm("updateCarParkForm"); // Show the Update Car Park form
+        fetchCarParksForUpdate();              // Populate dropdown with car parks
     });
 
     document.getElementById("deleteCarParkButton").addEventListener("click", function () {
-        showForm("deleteCarParkForm");
-        fetchCarParksForDeletion(); // ✅ Ensures dropdown is populated
+        window.showForm("deleteCarParkForm");  
+        fetchCarParksForDeletion();            // Populate dropdown for deletion
     });
-
+});
 
     // ✅ Attach logic for handling car park selection changes
     document.getElementById("carParkDropdown").addEventListener("change", async function () {
@@ -101,8 +87,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.error("❌ Error fetching availability:", error);
             resultContainer.innerText = "No live data available.";
         }
-    });
-});
+    }
+);
 
 
 // Opening Hours
@@ -467,29 +453,6 @@ async function deleteCarPark() {
     }
 }
 
-// Populate Dropdown with Existing Car Parks
-async function fetchCarParksForUpdate() {
-    const dropdown = document.getElementById("updateCarParkDropdown");
-    dropdown.innerHTML = '<option value="">Select Car Park</option>';
-
-    try {
-        const response = await fetch("/api/car-parks");
-        if (!response.ok) throw new Error("❌ Server error: " + response.status);
-
-        const carParks = await response.json();
-        carParks.forEach(carPark => {
-            let option = document.createElement("option");
-            option.value = carPark.id;
-            option.textContent = carPark.name;
-            dropdown.appendChild(option);
-        });
-
-    } catch (error) {
-        console.error("❌ Error fetching car parks:", error);
-    }
-}
-
-// Function to load existing car park details
 // Function to load existing car park details
 async function loadCarParkDetails() {
     const selectedId = document.getElementById("updateCarParkDropdown").value;
@@ -531,32 +494,20 @@ async function loadCarParkDetails() {
     }
 }
 
-  
-        // Height restriction field (if not present, defaults to empty)
-        document.getElementById("updateHeightRestriction").value = carPark.height_restriction || "";
-        
-        // If you have a checkbox for 24-hour status, set it accordingly.
-        const twentyFour = document.getElementById("updateIs24Hours");
-        if (twentyFour) {
-            twentyFour.checked = carPark.is_24_hours || false;
-        }
-    } catch (error) {
-        console.error("Error in loadCarParkDetails:", error);
-    }
-}
-
-// Function to fetch car parks for update
+// Populate Dropdown with Existing Car Parks
 async function fetchCarParksForUpdate() {
     console.log("🔍 Fetching car parks for update...");
+    const dropdown = document.getElementById("updateCarParkDropdown");
+    dropdown.innerHTML = '<option value="">Select Car Park</option>';
 
     try {
-        const response = await fetch("/api/car-parks"); // ✅ Request car park data from backend
-        if (!response.ok) throw new Error(`❌ Server error: ${response.status}`);
+        const response = await fetch("/api/car-parks");
+        if (!response.ok) throw new Error("❌ Server error: " + response.status);
 
         const carParks = await response.json();
         console.log("✅ Car Parks received:", carParks); // Debugging output
 
-        const dropdown = document.getElementById("updateCarParkDropdown");
+                const dropdown = document.getElementById("updateCarParkDropdown");
 
         dropdown.innerHTML = '<option value="">Select Car Park</option>';
 
@@ -577,11 +528,12 @@ async function fetchCarParksForUpdate() {
     }
 }
 
+// Function to update car park details
 async function updateCarPark() {
     const carParkId = document.getElementById("updateCarParkDropdown").value;
     const newHeight = document.getElementById("updateHeightRestriction").value;
     
-    // Build the new_hours object with keys matching your DB entry (e.g., "Monday", "Tuesday", etc.)
+    // Build the new_hours object for each day.
     const new_hours = {
         "Monday": {
             open: document.getElementById("update_Monday_open").value,
@@ -613,6 +565,9 @@ async function updateCarPark() {
         }
     };
     
+    // Capture the 24-hours flag from the checkbox.
+    const is24Hours = document.getElementById("updateIs24Hours").checked;
+    
     if (!carParkId) {
         alert("Please select a car park to update.");
         return;
@@ -625,7 +580,8 @@ async function updateCarPark() {
             body: JSON.stringify({
                 id: carParkId,
                 opening_hours: new_hours,
-                height_restriction: newHeight
+                height_restriction: newHeight,
+                is_24_hours: is24Hours
             })
         });
     
@@ -639,4 +595,3 @@ async function updateCarPark() {
         alert("An error occurred while updating the car park.");
     }
 }
-

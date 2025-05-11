@@ -49,6 +49,22 @@ class OpeningHoursDAO:
                 print("Database connection closed.")
         except MySQLError as err:
             logging.error("Error closing connection: %s", err)
+    
+    def get_car_park_details(self, car_park_id):
+        car_park = car_parks_dao.get_car_park_by_id(car_park_id)
+        if not car_park:
+            return None
+        opening_hours_raw = self.get_opening_hours_for_car_park(car_park_id)
+        # Assume each row in opening_hours_raw has fields: day_of_week, opening_time, closing_time, status.
+        opening_hours = {}
+        for row in opening_hours_raw:
+            day = row['day_of_week']  # make sure day names match your JS (e.g., "Monday")
+            opening_hours[day] = {
+                "open": row["opening_time"],
+                "close": row["closing_time"]
+            }
+        car_park["opening_hours"] = opening_hours
+        return car_park
 
     def get_all_opening_hours(self):
         """Retrieves opening hours for all car parks."""
@@ -68,19 +84,19 @@ class OpeningHoursDAO:
         sql = "SELECT * FROM openinghours WHERE car_park_id = %s"
         return self.execute_query(sql, (car_park_id,), fetch=True)
 
-    def update_opening_hours(self, openinghours_id, day_of_week, opening_time, closing_time, status):
+    def update_opening_hours(self, car_park_id, day_of_week, opening_time, closing_time, status):
         """Updates opening hours for a specific entry."""
         sql = """
             UPDATE openinghours
-            SET day = %s, opening_time = %s, closing_time = %s, status = %s
+            SET day_of_week = %s, opening_time = %s, closing_time = %s, status = %s
             WHERE id = %s
         """
-        return self.execute_query(sql, (day_of_week, opening_time, closing_time, status, openinghours_id))
+        return self.execute_query(sql, (day_of_week, opening_time, closing_time, status,car_park_id))
 
-    def delete_opening_hours(self, openinghours_id):
+    def delete_opening_hours(self, car_park_id):
         """Deletes an opening hours entry by ID."""
         sql = "DELETE FROM openinghours WHERE id = %s"
-        return self.execute_query(sql, (openinghours_id,))
+        return self.execute_query(sql, (car_park_id))
 
     def __del__(self):
         try:
