@@ -125,24 +125,33 @@ def get_opening_hours(car_park_id):
         return jsonify({"message": "There is no data available for the opening hours car park."})
 
     today = datetime.today().strftime("%A")
-    now = datetime.now().strftime("%H:%M")  # ✅ Current time
+    now = datetime.now().strftime("%H:%M")  # Current time
 
     today_hours = next((entry for entry in opening_hours if entry["day_of_week"] == today), None)
 
     if today_hours:
-        opening_time = str(today_hours["opening_time"])[:-3] if today_hours["opening_time"] else None  # ✅ Removes seconds
-        closing_time = str(today_hours["closing_time"])[:-3] if today_hours["closing_time"] else None  # ✅ Removes seconds
+        # Convert times to HH:MM (remove seconds) if they exist, otherwise set to None
+        opening_time = str(today_hours["opening_time"])[:-3] if today_hours["opening_time"] else None
+        closing_time = str(today_hours["closing_time"])[:-3] if today_hours["closing_time"] else None
         status = today_hours.get("status", "Open as usual")
 
-        # ✅ If it's "Open 24 Hours" AND times are NULL, display special message
+        # If it's "Open 24 Hours" and times are missing, display special message.
         if status == "24 Hours" and not opening_time and not closing_time:
             return jsonify({"message": "This car park is open 24 hours today"})
 
-        # ✅ If opening/closing times exist, don't show status
-        if opening_time and closing_time:
-            return jsonify({"day": today_hours["day_of_week"], "opening_time": opening_time, "closing_time": closing_time})
+        # NEW: If the status is "closed" and both times are missing, display closed message.
+        if status.lower() == "closed" and not opening_time and not closing_time:
+            return jsonify({"message": "This car park is closed today"})
 
-        # ✅ Otherwise, return status + whatever time info exists
+        # If both opening and closing times exist, return them.
+        if opening_time and closing_time:
+            return jsonify({
+                "day": today_hours["day_of_week"],
+                "opening_time": opening_time,
+                "closing_time": closing_time
+            })
+
+        # Otherwise, return any available time info (or "N/A" for missing fields), along with status.
         return jsonify({
             "day": today_hours["day_of_week"],
             "opening_time": opening_time or "N/A",
@@ -151,6 +160,7 @@ def get_opening_hours(car_park_id):
         })
 
     return jsonify({"message": f"No opening hours available for {today}."})
+
 
 
 # Fetch height restrictions for all car parks (for display)
@@ -234,7 +244,6 @@ def delete_car_park():
     
     car_park_id = request.form.get('car_park_id')  # Extract car park ID from the request
 
-
     if not car_park_id or not car_park_id.isdigit():
         return jsonify({"message": "Invalid car park ID provided."}), 400
 
@@ -263,7 +272,7 @@ def delete_car_park():
         logging.error(f"Transaction Error: {err}")
         return jsonify({"message": "Database transaction failed. Car park was not deleted."}), 500
 
-# Update a car park
+# Get a car park by id
 @app.route('/api/car-parks/<int:car_park_id>', methods=['GET'])
 def get_car_park(car_park_id):
     car_park = car_parks_dao.get_car_park_by_id(car_park_id)
@@ -273,10 +282,16 @@ def get_car_park(car_park_id):
     # Retrieve opening hours from your opening hours DAO.
     opening_hours = opening_hours_dao.get_opening_hours_for_car_park(car_park_id)
     hours_dict = {}
+
     for record in opening_hours:
         day = record.get("day_of_week")
-        # Basic validation: if times are null and the car park is 24 hours, assume special status.
-        if car_park.get("is_24_hours"):
+        
+        # Check if the times are missing (or NA) and status is 'closed'
+        if (not record.get("opening_time") or record.get("opening_time") in ["NA", ""]) and \
+           (not record.get("closing_time") or record.get("closing_time") in ["NA", ""]) and \
+           record.get("status", "").lower() == "closed":
+            hours_dict[day] = "This car park is closed today"
+        elif car_park.get("is_24_hours"):
             hours_dict[day] = "This car park is open 24 hours"
         else:
             hours_dict[day] = {
@@ -284,10 +299,69 @@ def get_car_park(car_park_id):
                 "close": record.get("closing_time")
             }
 
-    # Optionally remove the numeric times if the car park is 24 hours.
     car_park["opening_hours"] = hours_dict
     return jsonify(car_park)
 
+
+# Update a car park
+@app.route('/update_car_park', methods=['POST'])
+def update_car_park():
+    data = request.json
+    car_park_id = data.get("id")
+    new_hours = data.get("opening_hours")
+    new_height = data.get("height_restriction")
+    is_24_hours = data.get("is_24_hours", False)
+    
+    # Ensure the car park exists:
+    car_park = car_parks_dao.get_car_park_by_id(car_park_id)
+    if not car_park:
+        return jsonify({"message": "❌ Error: Car park not found."}), 404
+
+    # Update the height via CarParksDAO:
+    try:
+        new_height = float(new_height) if new_height else None
+    except ValueError:
+        return jsonify({"message": "❌ Error: Invalid height provided."}), 400
+
+    height_success = car_parks_dao.update_car_park_height(car_park_id, new_height)
+    
+    # Update opening hours via OpeningHoursDAO:
+    # (Assume you have a mechanism to match days to records, similar to previous examples.)
+    existing_opening_hours = opening_hours_dao.get_opening_hours_for_car_park(car_park_id)
+    day_to_record_id = {record.get("day_of_week"): record.get("id") for record in existing_opening_hours}
+    
+    hours_success = True
+    for day, times in new_hours.items():
+        if is_24_hours:
+            status = "24 hours"
+            opening_time = "00:00"  # Or choose appropriate times
+            closing_time = "23:59"
+        else:
+            if times.get("open", "") == "" or times.get("close", "") == "":
+                status = "closed"
+                opening_time = None
+                closing_time = None
+            else:
+                status = "open"
+                opening_time = times.get("open")
+                closing_time = times.get("close")
+                
+        record_id = day_to_record_id.get(day)
+        if record_id:
+            result = opening_hours_dao.update_opening_hours(
+                record_id, day, opening_time, closing_time, status
+            )
+            if not result:
+                hours_success = False
+                logging.error("Failed to update opening hours for %s", day)
+        else:
+            logging.error("No opening hours record found for day: %s", day)
+            hours_success = False
+
+    if height_success and hours_success:
+        return jsonify({"message": "✅ Car park updated successfully."}), 200
+    else:
+        return jsonify({"message": "❌ Error updating car park."}), 500
 
 # Start Flask Server
 if __name__ == "__main__":

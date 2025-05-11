@@ -253,13 +253,13 @@ async function addCarPark() {
     const is24Hours = document.getElementById("is24Hours").checked;
 
     const openingHours = {
-        "Monday": [document.getElementById("Monday_open").value, document.getElementById("Monday_close").value],
-        "Tuesday": [document.getElementById("Tuesday_open").value, document.getElementById("Tuesday_close").value],
-        "Wednesday": [document.getElementById("Wednesday_open").value, document.getElementById("Wednesday_close").value],
-        "Thursday": [document.getElementById("Thursday_open").value, document.getElementById("Thursday_close").value],
-        "Friday": [document.getElementById("Friday_open").value, document.getElementById("Friday_close").value],
-        "Saturday": [document.getElementById("Saturday_open").value, document.getElementById("Saturday_close").value],
-        "Sunday": [document.getElementById("Sunday_open").value, document.getElementById("Sunday_close").value],
+        "Monday": [document.getElementById("add_Monday_open").value, document.getElementById("add_Monday_close").value],
+        "Tuesday": [document.getElementById("add_Tuesday_open").value, document.getElementById("add_Tuesday_close").value],
+        "Wednesday": [document.getElementById("add_Wednesday_open").value, document.getElementById("add_Wednesday_close").value],
+        "Thursday": [document.getElementById("add_Thursday_open").value, document.getElementById("add_Thursday_close").value],
+        "Friday": [document.getElementById("add_Friday_open").value, document.getElementById("add_Friday_close").value],
+        "Saturday": [document.getElementById("add_Saturday_open").value, document.getElementById("add_Saturday_close").value],
+        "Sunday": [document.getElementById("add_Sunday_open").value, document.getElementById("add_Sunday_close").value],
     };
 
     console.log("🔍 Debugging: Opening Hours Before Sending", openingHours);
@@ -291,18 +291,29 @@ async function addCarPark() {
     }
 }
 
-// Function to copy opening hours from the previous day
-function copyPrevious(day) {
+// Function to copy previous day's hours
+function copyPrevious(formPrefix, day) {
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const currentIndex = days.indexOf(day);
 
     if (currentIndex > 0) { 
         const previousDay = days[currentIndex - 1];
         
-        document.getElementById(`${day}_open`).value = document.getElementById(`${previousDay}_open`).value;
-        document.getElementById(`${day}_close`).value = document.getElementById(`${previousDay}_close`).value;
-
-        console.log(`✅ Copied hours from ${previousDay} to ${day}`);
+        const currentOpen = document.getElementById(`${formPrefix}_${day}_open`);
+        const previousOpen = document.getElementById(`${formPrefix}_${previousDay}_open`);
+        const currentClose = document.getElementById(`${formPrefix}_${day}_close`);
+        const previousClose = document.getElementById(`${formPrefix}_${previousDay}_close`);
+        
+        if (currentOpen && previousOpen && currentClose && previousClose) {
+            currentOpen.value = previousOpen.value;
+            currentClose.value = previousClose.value;
+            console.log(`✅ Copied hours from ${previousDay} to ${day}`);
+        } else {
+            console.error("One or more time elements are not found:", 
+                `${formPrefix}_${day}_open`, `${formPrefix}_${previousDay}_open`,
+                `${formPrefix}_${day}_close`, `${formPrefix}_${previousDay}_close`
+            );
+        }
     }
 }
 
