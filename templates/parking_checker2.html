@@ -80,65 +80,65 @@
                 <tbody>
                     <tr>
                         <td>Monday</td>
-                        <td><input type="time" id="monday_open"></td>
-                        <td><input type="time" id="monday_close"></td>
+                        <td><input type="time" id="Monday_open"></td>
+                        <td><input type="time" id="Monday_close"></td>
                         <td>
-                            <button onclick="setClosed('monday')" class="closed-btn">Closed</button>
+                            <button onclick="setClosed('Monday')" class="closed-btn">Closed</button>
 
                         </td>
                     </tr>
                     <tr>
                         <td>Tuesday</td>
-                        <td><input type="time" id="tuesday_open"></td>
-                        <td><input type="time" id="tuesday_close"></td>
+                        <td><input type="time" id="Tuesday"></td>
+                        <td><input type="time" id="Tuesday_close"></td>
                         <td>
-                            <button onclick="copyPrevious('tuesday')" class="same-as-above-btn">Same as above</button>
-                            <button onclick="setClosed('tuesday')" class="closed-btn">Closed</button>
+                            <button onclick="copyPrevious('Tuesday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('Tuesday')" class="closed-btn">Closed</button>
                         </td>
                     </tr>
                     <tr>
                         <td>Wednesday</td>
-                        <td><input type="time" id="wednesday_open"></td>
-                        <td><input type="time" id="wednesday_close"></td>
+                        <td><input type="time" id="Wednesday_open"></td>
+                        <td><input type="time" id="Wednesday_close"></td>
                         <td>
-                            <button onclick="copyPrevious('wednesday')" class="same-as-above-btn">Same as above</button>
-                            <button onclick="setClosed('wednesday')" class="closed-btn">Closed</button>
+                            <button onclick="copyPrevious('Wednesday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('Wednesday')" class="closed-btn">Closed</button>
                         </td>
                     </tr>
                     <tr>
                         <td>Thursday</td>
-                        <td><input type="time" id="thursday_open"></td>
-                        <td><input type="time" id="thursday_close"></td>
+                        <td><input type="time" id="Thursday_open"></td>
+                        <td><input type="time" id="Thursday_close"></td>
                         <td>
-                            <button onclick="copyPrevious('thursday')" class="same-as-above-btn">Same as above</button>
-                            <button onclick="setClosed('thursday')" class="closed-btn">Closed</button>
+                            <button onclick="copyPrevious('Thursday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('Thursday')" class="closed-btn">Closed</button>
                         </td>
                     </tr>
                     <tr>
                         <td>Friday</td>
-                        <td><input type="time" id="friday_open"></td>
-                        <td><input type="time" id="friday_close"></td>
+                        <td><input type="time" id="Friday_open"></td>
+                        <td><input type="time" id="Friday"></td>
                         <td>
-                            <button onclick="copyPrevious('friday')" class="same-as-above-btn">Same as above</button>
-                            <button onclick="setClosed('friday')" class="closed-btn">Closed</button>
+                            <button onclick="copyPrevious('Friday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('Friday')" class="closed-btn">Closed</button>
                         </td>
                     </tr>
                     <tr>
                         <td>Saturday</td>
-                        <td><input type="time" id="saturday_open"></td>
-                        <td><input type="time" id="saturday_close"></td>
+                        <td><input type="time" id="Saturday_open"></td>
+                        <td><input type="time" id="Saturday_close"></td>
                         <td>
-                            <button onclick="copyPrevious('saturday')" class="same-as-above-btn">Same as above</button>
-                            <button onclick="setClosed('saturday')" class="closed-btn">Closed</button>
+                            <button onclick="copyPrevious('Saturday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('Saturday')" class="closed-btn">Closed</button>
                         </td>
                     </tr>
                     <tr>
                         <td>Sunday</td>
-                        <td><input type="time" id="sunday_open"></td>
-                        <td><input type="time" id="sunday_close"></td>
+                        <td><input type="time" id="Sunday_open"></td>
+                        <td><input type="time" id="Sunday_close"></td>
                         <td>
-                            <button onclick="copyPrevious('sunday')" class="same-as-above-btn">Same as above</button>
-                            <button onclick="setClosed('saturday')" class="closed-btn">Closed</button>
+                            <button onclick="copyPrevious('Sunday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('Sunday')" class="closed-btn">Closed</button>
                         </td>
                     </tr>
                 </tbody>
@@ -152,11 +152,95 @@
 
         <!-- 'Update Car Park' Forms (Initially Hidden) -->
         <div id="updateCarParkForm" class="d-none">
-            <select id="updateCarParkDropdown"></select>
-            <input type="text" id="newCarParkName" placeholder="Enter New Name">
+            <h3>Update Car Park</h3>
+
+            <!-- ✅ Dropdown for selecting an existing car park -->
+            <label for="updateCarParkDropdown"><strong>Select Car Park:</strong></label>
+            <select id="updateCarParkDropdown" onchange="loadCarParkDetails()"></select>
+
+            <label for="updateHeightRestriction"><strong>Height Restriction (m):</strong></label>
+            <input type="number" id="updateHeightRestriction" step="0.1" placeholder="Example: 2.00">
+
+            <table class="opening-hours-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Opening Time</th>
+                        <th>Closing Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Monday</td>
+                        <td><input type="time" id="update_Monday_open"></td>
+                        <td><input type="time" id="update_Monday_close"></td>
+                        <td><button onclick="setClosed('update_Monday')" class="closed-btn">Closed</button></td>
+                    </tr>
+                    <tr>
+                        <td>Tuesday</td>
+                        <td><input type="time" id="update_Tuesday_open"></td>
+                        <td><input type="time" id="update_Tuesday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('update_Tuesday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('update_Tuesday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Wednesday</td>
+                        <td><input type="time" id="update_Wednesday_open"></td>
+                        <td><input type="time" id="update_Wednesday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('update_Wednesday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('update_Wednesday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Thursday</td>
+                        <td><input type="time" id="update_Thursday_open"></td>
+                        <td><input type="time" id="update_Thursday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('update_Thursday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('update_Thursday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Friday</td>
+                        <td><input type="time" id="update_Friday_open"></td>
+                        <td><input type="time" id="update_Friday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('update_Friday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('update_Friday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Saturday</td>
+                        <td><input type="time" id="update_Saturday_open"></td>
+                        <td><input type="time" id="update_Saturday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('update_Saturday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('update_Saturday')" class="closed-btn">Closed</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sunday</td>
+                        <td><input type="time" id="update_Sunday_open"></td>
+                        <td><input type="time" id="update_Sunday_close"></td>
+                        <td>
+                            <button onclick="copyPrevious('update_Sunday')" class="same-as-above-btn">Same as above</button>
+                            <button onclick="setClosed('update_Sunday')" class="closed-btn">Closed</button> 
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- ✅ Checkbox for 24-hour status -->
+            <label for="updateIs24Hours">Open 24 Hours?</label>
+            <input type="checkbox" id="updateIs24Hours">
+
             <button onclick="updateCarPark()">Update Car Park</button>
         </div>
-        
+
         <!-- 'Delete Car Park' Forms (Initially Hidden) -->
         <div id="deleteCarParkForm" class="d-none">
             <p><strong>Please choose the car park you wish to delete</strong></p>
@@ -171,13 +255,12 @@
             </div>
         </div>
 
-
         <!-- Footer Section -->
         <footer class="text-center mt-5">
             <p>&copy; 2023 Cork City Parking Checker. All rights reserved.</p>
             <p>Developed by Laura Lyons</p>
     </div>
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
 

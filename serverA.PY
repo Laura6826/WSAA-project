@@ -113,15 +113,6 @@ def get_car_park_availability(car_park_id):
     else:
         return jsonify({"car_park_id": car_park_id, "free_spaces": "No live data available"})
 
-# Fetch all opening hours (for display)
-# curl -X GET http://127.0.0.1:5000/api/opening-hours
-
-@app.route('/api/opening-hours', methods=['GET'])
-def get_all_opening_hours():
-    """ Fetch all opening hours """
-    opening_hours = opening_hours_dao.get_all_opening_hours()
-    return jsonify(opening_hours)
-
 # Fetch opening hours for selected car park
 # curl -X GET http://127.0.0.1:5000/api/opening-hours/1
 
@@ -236,24 +227,13 @@ def add_opening_hours():
     
     return jsonify({"message": f"Opening hours added for Car Park ID {car_park_id}!"})
 
-
-
-# Update opening hours for a car park
-# 
-@app.route('/api/opening-hours/<int:openinghours_id>', methods=['PUT'])
-def update_opening_hours(openinghours_id):
-    data = request.json
-    success = opening_hours_dao.update_opening_hours(
-        openinghours_id, data["day"], data["opening_time"], data["closing_time"], data["status"]
-    )
-    return jsonify({"message": "Opening hours updated."}) if success else jsonify({"message": "Update failed."})
-
-# Delete opening hours for a car park
+# Delete  a car park
 @app.route('/delete_car_park', methods=['POST'])
 def delete_car_park():
     """Deletes a car park and its associated opening hours with full error handling."""
     
     car_park_id = request.form.get('car_park_id')  # Extract car park ID from the request
+
 
     if not car_park_id or not car_park_id.isdigit():
         return jsonify({"message": "Invalid car park ID provided."}), 400
@@ -267,15 +247,15 @@ def delete_car_park():
     try:
         with car_parks_dao.connection.cursor() as cursor:
             cursor.execute("START TRANSACTION")
-            
+
             # Delete opening hours first
             cursor.execute("DELETE FROM openinghours WHERE car_park_id = %s", (car_park_id,))
-            
+
             # Delete car park
             cursor.execute("DELETE FROM carparkdetails WHERE id = %s", (car_park_id,))
             
             cursor.execute("COMMIT")
-        
+
         return jsonify({"message": "Car park and opening hours deleted successfully."}), 200
 
     except MySQLError as err:
@@ -283,12 +263,29 @@ def delete_car_park():
         logging.error(f"Transaction Error: {err}")
         return jsonify({"message": "Database transaction failed. Car park was not deleted."}), 500
 
+# Update a car park
+@app.route('/update_car_park', methods=['POST'])
+def update_car_park():
+    data = request.json
+    car_park_id = data.get('id')
+    new_hours = data.get('opening_hours')
+    new_height = data.get('height_restriction')
+    
+    # Check that the car park exists.
+    car_park = car_parks_dao.get_car_park_by_id(car_park_id)
+    if not car_park:
+        return jsonify({"message": "❌ Error: Car park not found."}), 404
+
+    success = car_parks_dao.update_car_park_opening_hours_and_height(car_park_id, new_hours, new_height)
+    if success:
+        return jsonify({"message": "✅ Car park updated successfully."}), 200
+    else:
+        return jsonify({"message": "❌ Error updating car park."}), 500
 
 
+    
 # Start Flask Server
 if __name__ == "__main__":
     logging.debug("Starting Flask server on http://127.0.0.1:5000")
     print("Starting Flask server on http://127.0.0.1:5000")
     app.run(debug=True, use_reloader=False)
-
-
