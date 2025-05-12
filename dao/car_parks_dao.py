@@ -59,14 +59,14 @@ class CarParksDAO:
     def create_car_park(self, name, height):
         """Creates a new car park with the given name and height restriction."""
         with self.connection.cursor() as cursor:
-            # ✅ Check if a car park with this name already exists
+            # Check if a car park with this name already exists
             cursor.execute("SELECT COUNT(*) FROM carparkdetails WHERE name = %s", (name,))
             existing_count = cursor.fetchone()["COUNT(*)"]
 
             if existing_count > 0:
-                return None  # ✅ Prevent duplicate insertion
+                return None  # Prevent duplicate insertion
 
-            # ✅ If not found, insert the new car park
+            # If not found, insert the new car park
             sql = "INSERT INTO carparkdetails (name, height) VALUES (%s, %s)"
             cursor.execute(sql, (name, height))
             self.connection.commit()
@@ -82,7 +82,6 @@ class CarParksDAO:
 
     def get_car_park_by_id(self, car_park_id):
         """Retrieves a car park by ID."""
-         # Check if the car park exists before attempting to retrieve
         sql = "SELECT * FROM carparkdetails WHERE id = %s"
         return self.execute_query(sql, (car_park_id,), fetch_one=True)
 
@@ -95,7 +94,7 @@ class CarParksDAO:
             self.connection.commit()
             affected = cursor.rowcount
         return affected > 0
-    
+     
     def update_car_park_height(self, car_park_id, new_height):
         """
         Updates the height restriction in the carparkdetails table.
@@ -112,7 +111,7 @@ class CarParksDAO:
                 cursor.execute(sql_update_details, (new_height, car_park_id))
             self.connection.commit()
             return True
-        except Exception as e:
+        except MySQLError as e:
             logging.error("Error updating car park height: %s", e, exc_info=True)
             return False
          

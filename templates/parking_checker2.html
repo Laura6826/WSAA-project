@@ -1,3 +1,7 @@
+<!-- WSAA-project: Web Services and Applications.
+     REST-SERVER for car-park space availability in Cork City.
+     Author: Laura Lyons -->
+     
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -143,7 +147,7 @@
                 </tbody>
             </table>
             
-            <!-- ✅ Checkbox for 24-hour status -->
+            <!-- Checkbox for 24-hour status -->
             <label for="is24Hours">Open 24 Hours?</label>
             <input type="checkbox" id="is24Hours">
             <button onclick="addCarPark()">Add Car Park</button>
@@ -153,7 +157,7 @@
         <div id="updateCarParkForm" class="d-none">
             <h3>Update Car Park</h3>
 
-            <!-- ✅ Dropdown for selecting an existing car park -->
+            <!-- Dropdown for selecting an existing car park -->
             <label for="updateCarParkDropdown"><strong>Select Car Park:</strong></label>
             <select id="updateCarParkDropdown" onchange="loadCarParkDetails()"></select>
 
@@ -233,7 +237,7 @@
                 </tbody>
             </table>
             
-            <!-- ✅ Checkbox for 24-hour status -->
+            <!-- Checkbox for 24-hour status -->
             <label for="updateIs24Hours">Open 24 Hours?</label>
             <input type="checkbox" id="updateIs24Hours">
 
@@ -245,7 +249,7 @@
             <p><strong>Please choose the car park you wish to delete</strong></p>
 
             <div class="stacked-elements"> 
-                <select id="deleteCarParkDropdown"></select> <!-- ✅ Dropdown first -->
+                <select id="deleteCarParkDropdown"></select> <!-- Dropdown first -->
                 <button class="confirm-selection-btn" onclick="showDeleteCarParkForm()">Click to confirm selection</button> <!-- ✅ Properly positioned -->
                 <div id="deleteCarParkDetails" class="d-none">
                     <p class="text-danger fw-bold">Are you sure you want to delete this car park?</p>
@@ -262,4 +266,3 @@
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
-

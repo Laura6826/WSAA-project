@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 });
 
-    // ✅ Attach logic for handling car park selection changes
+    // Attach logic for handling car park selection changes
     document.getElementById("carParkDropdown").addEventListener("change", async function () {
         const selectedId = this.value;
         const resultContainer = document.getElementById("checkFreeSpaces");
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         try {
             const response = await fetch(`/api/car-parks/${selectedId}`);  
-            if (!response.ok) throw new Error(`❌ Server Error: ${response.status} ${response.statusText}`);
+            if (!response.ok) throw new Error(`Server Error: ${response.status} ${response.statusText}`);
 
             const carPark = await response.json();
             console.log("🔍 Live free spaces:", carPark.free_spaces);
@@ -84,12 +84,11 @@ document.addEventListener("DOMContentLoaded", async function () {
                 resultContainer.classList.add("alert-danger");
             }
         } catch (error) {
-            console.error("❌ Error fetching availability:", error);
+            console.error("Error fetching availability:", error);
             resultContainer.innerText = "No live data available.";
         }
     }
 );
-
 
 // Opening Hours
 document.addEventListener("DOMContentLoaded", function () {
@@ -98,12 +97,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const openingHoursResult = document.getElementById("openingHoursResult");
 
     if (!showOpeningHoursBtn) {
-        console.error("❌ 'Show Opening Hours' button not found.");
+        console.error("'Show Opening Hours' button not found.");
         return;
     }
 
     showOpeningHoursBtn.addEventListener("click", async function () {
-        console.log("✅ 'Show Opening Hours' button clicked!");
+        console.log("'Show Opening Hours' button clicked!");
 
         const selectedId = document.getElementById("carParkDropdown").value;
         if (!selectedId) {
@@ -118,13 +117,13 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!response.ok) throw new Error(`❌ Server Error: ${response.status}`);
 
             const todayHours = await response.json();
-            console.log("✅ API Response:", todayHours);
+            console.log("API Response:", todayHours);
 
             openingHoursContainer.innerHTML = todayHours.message
                 ? `<p>${todayHours.message}</p>`
                 : `<p><strong>${todayHours.day}:</strong> ${todayHours.opening_time || "N/A"} - ${todayHours.closing_time || "N/A"}</p>`;
 
-            openingHoursResult.classList.remove("d-none"); // ✅ Make visible
+            openingHoursResult.classList.remove("d-none"); // Make visible
 
         } catch (error) {
             console.error("❌ Error fetching opening hours:", error);
@@ -141,12 +140,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const heightRestrictionNotice = document.getElementById("heightRestrictionNotice");
 
     if (!showHeightRestrictionBtn) {
-        console.error("❌ 'Car Park Height Restriction' button not found.");
+        console.error("'Car Park Height Restriction' button not found.");
         return;
     }
 
     showHeightRestrictionBtn.addEventListener("click", async function () {
-        console.log("✅ 'Car Park Height Restriction' button clicked!");
+        console.log("'Car Park Height Restriction' button clicked!");
 
         const selectedId = document.getElementById("carParkDropdown").value;
         if (!selectedId) {
@@ -158,18 +157,18 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             console.log(`🔍 Fetching height restriction for Car Park ID ${selectedId}...`);
             const response = await fetch(`/api/height-restriction/${selectedId}`);
-            if (!response.ok) throw new Error(`❌ Server Error: ${response.status}`);
+            if (!response.ok) throw new Error(`Server Error: ${response.status}`);
 
             const restrictionData = await response.json();
-            console.log("✅ API Response:", restrictionData);
+            console.log("API Response:", restrictionData);
 
-            let heightFormatted = restrictionData.height_restriction.replace("mm", "m"); // ✅ Corrects unit label
+            let heightFormatted = restrictionData.height_restriction.replace("mm", "m"); // Corrects unit label
 
             heightRestrictionContainer.innerHTML = restrictionData.height_restriction
                 ? `<p><strong>Height Restriction:</strong> ${heightFormatted}</p>`
                 : `<p>${restrictionData.message}</p>`;
 
-            heightRestrictionNotice.classList.remove("d-none"); // ✅ Make visible
+            heightRestrictionNotice.classList.remove("d-none"); // Make visible
 
         } catch (error) {
             console.error("❌ Error fetching height restriction:", error);
@@ -186,17 +185,17 @@ function updateCurrentTime() {
 
 // Function to show the form for adding a car park
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("✅ DOM fully loaded, adding event listeners...");
-    console.log("🔍 Checking if button exists:", document.getElementById("addCarParkButton")); // ✅ Debugging line
+    console.log("DOM fully loaded, adding event listeners...");
+    console.log("Checking if button exists:", document.getElementById("addCarParkButton")); // Debugging line
 
     const addCarParkButton = document.getElementById("addCarParkButton");
     if (addCarParkButton) {
         addCarParkButton.addEventListener("click", function () {
-            console.log("✅ Add Car Park button clicked!");
+            console.log("Add Car Park button clicked!");
             showForm("addCarParkForm");
         });
     } else {
-        console.error("❌ Button ID 'addCarParkButton' not found in HTML.");
+        console.error("Button ID 'addCarParkButton' not found in HTML.");
     }
 });
 
@@ -207,7 +206,7 @@ async function fetchCarParks() {
         const carParks = await response.json();
 
         const dropdown = document.getElementById("carParkDropdown");
-        dropdown.innerHTML = '<option value="">Select Car Park</option>'; // ✅ Clear old options
+        dropdown.innerHTML = '<option value="">Select Car Park</option>'; // Clear old options
 
         carParks.forEach(carPark => {
             const option = document.createElement("option");
@@ -216,10 +215,10 @@ async function fetchCarParks() {
             dropdown.appendChild(option);
         });
 
-        console.log("✅ Dropdown updated with new car park list!");
+        console.log("Dropdown updated with new car park list!");
 
     } catch (error) {
-        console.error("❌ Error fetching car parks:", error);
+        console.error("Error fetching car parks:", error);
     }
 }
 
@@ -231,7 +230,7 @@ function populateDropdown(dropdownIds, parkingData) {
 
         if (!parkingData || parkingData.length === 0) {
             dropdown.innerHTML += '<option disabled>No car parks available</option>';
-            console.error("❌ No car park data received.");
+            console.error("No car park data received.");
             return;
         }
 
@@ -278,7 +277,7 @@ async function addCarPark() {
 
         await response.json();
 
-        console.log("✅ Car Park Added Successfully!");
+        console.log("Car Park Added Successfully!");
 
         // Refresh dropdown list immediately after adding a car park
         await fetchCarParks();
@@ -287,7 +286,7 @@ async function addCarPark() {
         document.getElementById("addCarParkForm").classList.add("d-none");
 
     } catch (error) {
-        console.error("❌ Error adding car park:", error);
+        console.error("Error adding car park:", error);
     }
 }
 
@@ -324,7 +323,7 @@ function setClosed(day) {
     document.getElementById(`${day}_open`).disabled = true;
     document.getElementById(`${day}_close`).disabled = true;
 
-    console.log(`✅ Marked ${day} as Closed`);
+    console.log(`Marked ${day} as Closed`);
 }
 
 // Function to add car park opening hours.
@@ -348,7 +347,7 @@ async function addOpeningHours(carParkId) {
         populateDropdown(["carParkDropdown"], updatedParkingData);
 
     } catch (error) {
-        console.error("❌ Error adding opening hours:", error);
+        console.error("Error adding opening hours:", error);
     }
 }
 
@@ -374,7 +373,7 @@ async function fetchOpeningHours(carParkId) {
         document.getElementById("openingHoursResult").classList.remove("d-none"); 
 
     } catch (error) {
-        console.error("❌ Error fetching opening hours:", error);
+        console.error("Error fetching opening hours:", error);
     }
 }
 
@@ -411,10 +410,10 @@ async function fetchCarParksForDeletion() {
             dropdown.appendChild(option);
         });
 
-        console.log("✅ Dropdown updated!");
+        console.log("Dropdown updated!");
 
     } catch (error) {
-        console.error("❌ Error fetching car parks:", error);
+        console.error("Error fetching car parks:", error);
     }
 }
 
@@ -424,15 +423,15 @@ function showDeleteCarParkForm() {
 
     const form = document.getElementById("deleteCarParkDetails");
     if (!form) {
-        console.error("❌ Error: deleteCarParkDetails not found.");
+        console.error("Error: deleteCarParkDetails not found.");
         return; // Prevent crashing if the element doesn't exist
     }
 
-    form.classList.remove("d-none"); // ✅ Make sure it's visible
+    form.classList.remove("d-none"); // Make sure it's visible
 }
 
 async function deleteCarPark() {
-    console.log("✅ Delete Car Park button clicked!");
+    console.log("Delete Car Park button clicked!");
 
     const carParkId = document.getElementById("deleteCarParkDropdown").value;
 
@@ -449,17 +448,17 @@ async function deleteCarPark() {
         });
 
         const result = await response.json();
-        alert(result.message); // ✅ Show success or error message
+        alert(result.message); // Show success or error message
 
         if (response.ok) {
-            console.log("✅ Car park deleted, refreshing dropdown...");
+            console.log("Car park deleted, refreshing dropdown...");
 
-            await fetchCarParks(); // ✅ Refresh dropdown list
-            document.getElementById("deleteCarParkForm").classList.add("d-none"); // ✅ Hide the form
+            await fetchCarParks(); // Refresh dropdown list
+            document.getElementById("deleteCarParkForm").classList.add("d-none"); // Hide the form
         }
 
     } catch (error) {
-        console.error("❌ Error deleting car park:", error);
+        console.error("Error deleting car park:", error);
         alert("An error occurred while deleting the car park.");
     }
 }
@@ -472,10 +471,10 @@ async function loadCarParkDetails() {
     try {
         const response = await fetch(`/api/car-parks/${selectedId}`);
         if (!response.ok) {
-            throw new Error("❌ Error fetching car park details!");
+            throw new Error("Error fetching car park details!");
         }
         const carPark = await response.json();
-        console.log("🔍 Car Park Data:", carPark);
+        console.log("Car Park Data:", carPark);
 
         // Ensure opening_hours exists; if not, use default empty times.
         const openingHours = carPark.opening_hours || {};
@@ -513,10 +512,10 @@ async function fetchCarParksForUpdate() {
 
     try {
         const response = await fetch("/api/car-parks");
-        if (!response.ok) throw new Error("❌ Server error: " + response.status);
+        if (!response.ok) throw new Error("Server error: " + response.status);
 
         const carParks = await response.json();
-        console.log("✅ Car Parks received:", carParks); // Debugging output
+        console.log("Car Parks received:", carParks); // Debugging output
 
                 const dropdown = document.getElementById("updateCarParkDropdown");
 
@@ -535,7 +534,7 @@ async function fetchCarParksForUpdate() {
         });
 
     } catch (error) {
-        console.error("❌ Error fetching car parks:", error);
+        console.error("Error fetching car parks:", error);
     }
 }
 
@@ -602,7 +601,7 @@ async function updateCarPark() {
             // Optionally hide the update form or refresh lists.
         }
     } catch (error) {
-        console.error("❌ Error updating car park:", error);
+        console.error("Error updating car park:", error);
         alert("An error occurred while updating the car park.");
     }
 }

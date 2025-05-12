@@ -10,6 +10,7 @@ import dbconfig as cfg
 logging.basicConfig(level=logging.ERROR)
 
 class OpeningHoursDAO:
+    """ Data Access Object for car park opening hours. """
     def __init__(self):
         try:
             self.connection = pymysql.connect(
@@ -49,22 +50,6 @@ class OpeningHoursDAO:
                 print("Database connection closed.")
         except MySQLError as err:
             logging.error("Error closing connection: %s", err)
-    
-    def get_car_park_details(self, car_park_id):
-        car_park = car_parks_dao.get_car_park_by_id(car_park_id)
-        if not car_park:
-            return None
-        opening_hours_raw = self.get_opening_hours_for_car_park(car_park_id)
-        # Assume each row in opening_hours_raw has fields: day_of_week, opening_time, closing_time, status.
-        opening_hours = {}
-        for row in opening_hours_raw:
-            day = row['day_of_week']  # make sure day names match your JS (e.g., "Monday")
-            opening_hours[day] = {
-                "open": row["opening_time"],
-                "close": row["closing_time"]
-            }
-        car_park["opening_hours"] = opening_hours
-        return car_park
 
     def get_all_opening_hours(self):
         """Retrieves opening hours for all car parks."""
