@@ -15,13 +15,22 @@ This README file was written using the [GitHub's documentation on READMEs](https
 
 ## **Table of contents**
 
-1. [Introduction.](#1-introduction).
-1. [The purpose of this module.](#2-the-purpose-of-this-module)
+1. [The purpose of this module.](#1-the-purpose-of-this-module).
+1. [Introduction](#2-introduction)
 1. [How to get started.](#3-how-to-get-started)
 1. [How to get help.](#4-how-to-get-help)
 1. [How to contribute.](#5-how-to-contribute)
 
-## 1. Introduction
+## 1. The purpose of this module
+
+As noted on the [module introduction](https://vlegalwaymayo.atu.ie/course/view.php?id=12365),
+
+- Introduce various means of retrieving data from external sources (for example CSO, weather servers, stock information).
+- The module will look at the formats that data can come in (XML, JSON,CSV).
+- How to retrieve (through an API) and process that data, using JavaScript and Python.
+- Explore how to make your data available to the outside world by creating an API (Application Programmer's Interface) using the python module Flask.
+
+## 2. Introduction
 
 This project was created to fulfill an assessment requirement of Web Services and Applications 24-25: 8640, as part of the H.Dip in Science in Data Analytics.
 
@@ -33,14 +42,15 @@ This project is of **TYPE A:**
 
 ***
 
-## 2. The purpose of this module
+For this project I created a web page where a user can choose a car park from a drop down menu, choose the most appropriate car park and recieve information on the number of space available and the opening hours nd possibly height restrictions assocated with that car park (READ).
 
-As noted on the [module introduction](https://vlegalwaymayo.atu.ie/course/view.php?id=12365),
+Live data from Cork City Councils Parking API, is used to provide up to date information for car space availability, for 8 car parks with in the web page. I then created a MySql database, that stores the opening hours and height restrictions for each of these car parks.
 
-- Introduce various means of retrieving data from external sources (for example CSO, weather servers, stock information).
-- The module will look at the formats that data can come in (XML, JSON,CSV).
-- How to retrieve (through an API) and process that data, using JavaScript and Python.
-- Explore how to make your data available to the outside world by creating an API (Application Programmer's Interface) using the python module Flask.
+The user also has the option to:
+
+1. Add (CREATE) a car park (including a new name, opening hours and height restrictions)
+2. UPDATE a car park (this will only update the information on the MySQL database and not the live API).
+3. DELETE a car park (again only data found on the MySql database)
 
 ## 3. How to get started
 
@@ -75,89 +85,46 @@ A number of [additional files](https://github.com/github/gitignore/tree/main/Glo
 
 **Install the required packages**:
 
-For a seamless executition, I would also recommend you have access to the below libraries prior to running the files. The libraries required to run this file (as noted below), can be installed with the following code:
+For a seamless executition, I would also recommend you have access to the below libraries prior to running the files. The libraries required to run this project.
+
+**1. How to run the virtual environment**:
+
+To get started, open a terminal (or command prompt) and navigate to the root of the WSAA-project. From there, activate the virtual environment by running the appropriate command for your operating system (for windows)
+
+```ruby
+venv\Scripts\activate
+```
+
+Once activated, you'll see the environment’s name in your prompt (typically preceded by “(venv)”), indicating that the isolated Python environment is running. This setup ensures that all dependencies installed via the requirements.txt file are used exclusively for this project.
+
+OR
+
+**2. Manually install @requirements.txt'**:
 
 ```ruby
 pip install -r requirements.txt
 ```
 
-,or you can manually install each of the libraries below.
-
-```ruby
-import os
-import json
-import requests
-from github import Github
-from config import config as cfg
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
-```
-
-**Install Flask**:
-
-```ruby
-pip install -r requirements.txt
-pip install flask 
-pip install flask_sqlalchemy
-pip install requests
-
-```
-
-- Flask is essential for building your RESTful API, SQLAlchemy for database interaction and Requests for fetching external API data:
-
-***
-
-**Initialize Project Structure**:
+**Project Structure**:
 
 WSAA-project/
-
-```ruby
-│
-├── dao/
-│   ├── car_parks_dao.py     # DAO for the car park height restriction data.
-│   ├── live_spaces_dao.py   # DAO for the car park opening hours data.
-│   ├── opening_hours_dao.py # DAO for Parking data.
-│
-├── server.py                # Main Flask application
-├── README.md                # Documentation for your project
-├── package.json             # If you are using Node.js for dependencies
-├── server.js                # Backend server file (if applicable)
-├── .gitignore               # Git ignored files (if using Git)
-├── requirements.txt         # Python dependencies
-│
-├── database/                # Folder for database files
-│   ├── carparks.sql         # SQL script for database schema and initial data
-│
-├── schema/                  # Folder for storing the database schemas
-│   ├── schema.py            # SQL script for the car park and opening hours databases
-│
-├── templates/               # Folder for HTML
-│   ├── parking_checker.html # Main HTML file for the app
-│
-├── static/                  # Folder for static assets
-│   ├── css/                 # Folder for stylesheets
-│       ├── style.css        # Main CSS file for styling
-│   ├── images               # Images used in your project (e.g., icons, backgrounds)
-│
-├── js/                      # Folder for JavaScript files
-│   ├── script.js            # Main JavaScript file
-│   ├── carParkData.js       # JavaScript file for car park details and logic
-│
-├── data/                    # Folder for data files
-│   ├── carParkDetails.json  # JSON file for structured car park data (if applicable)
-│
-├── backend/                 # Backend-related files or logic (if using a framework like Node.js, Django, etc.)
-│   ├── routes/              # Routes for API endpoints
-│   ├── controllers/         # Logic for handling requests
-│
-├── public/                  # Public-facing files (if using a backend framework like Express.js)
-│   ├── css/                 # Stylesheets for the public
-│   ├── js/                  # JavaScript files for the public
-│   ├── images/              # Images for the public
-
-```
+  .
+  ├── dao
+  │   ├── car_parks_dao.py     # DAO for the car park height restriction data.
+  │   └── opening_hours_dao.py # DAO for parking data.
+  ├── static                   # Folder for static assets
+  │   ├── css                  # Folder for stylesheets
+  │   │   └── style.css        # Main CSS file for styling
+  │   ├── images               # Images used in your project (e.g., icons, backgrounds)
+  │   └── js                   # Folder for JavaScript files
+  │       └── script.js        # Main JavaScript file
+  ├── templates                # Folder for HTML
+  │   └── parking_checker.html # Main HTML file for the app
+  ├── .gitignore               # Git ignored files
+  ├── dbconfig.py              # Database configuration file
+  ├── README.md                # Documentation for your project
+  ├── requirements.txt         # Python dependencies
+  └── server.py                # Main Flask application
 
 ### Open in Visual Studio Code
 
