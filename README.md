@@ -110,9 +110,13 @@ pip install -r requirements.txt
 WSAA-project/
   .
   ├── dao
+
   │   ├── car_parks_dao.py     # DAO for the car park height restriction data.
+
   │   └── opening_hours_dao.py # DAO for parking data.
+
   ├── static                   # Folder for static assets
+  
   │   ├── css                  # Folder for stylesheets
   │   │   └── style.css        # Main CSS file for styling
   │   ├── images               # Images used in your project (e.g., icons, backgrounds)
