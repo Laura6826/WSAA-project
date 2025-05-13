@@ -1,5 +1,5 @@
 # WSAA-project: Web Services and Applications.
-# Main Flask application
+# Main Flask application.
 # Author: Laura Lyons.
 
 import logging
