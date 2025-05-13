@@ -108,7 +108,7 @@ pip install -r requirements.txt
 **Project Structure**:
 
 WSAA-project/
-  .
+  
   ├── dao
 
   │   ├── car_parks_dao.py     # DAO for the car park height restriction data.
