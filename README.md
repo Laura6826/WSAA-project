@@ -116,19 +116,31 @@ WSAA-project/
   │   └── opening_hours_dao.py # DAO for parking data.
 
   ├── static                   # Folder for static assets
-  
+
   │   ├── css                  # Folder for stylesheets
+
   │   │   └── style.css        # Main CSS file for styling
+
   │   ├── images               # Images used in your project (e.g., icons, backgrounds)
+
   │   └── js                   # Folder for JavaScript files
+
   │       └── script.js        # Main JavaScript file
+
   ├── templates                # Folder for HTML
+
   │   └── parking_checker.html # Main HTML file for the app
+
   ├── .gitignore               # Git ignored files
+
   ├── dbconfig.py              # Database configuration file
+
   ├── README.md                # Documentation for your project
+
   ├── requirements.txt         # Python dependencies
+
   └── server.py                # Main Flask application
+
 
 ### Open in Visual Studio Code
 
