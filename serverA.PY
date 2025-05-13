@@ -1,6 +1,6 @@
 # WSAA-project: Web Services and Applications.
 # Main Flask application
-# Author: Laura Lyons
+# Author: Laura Lyons.
 
 import logging
 from datetime import datetime
