@@ -52,6 +52,10 @@ The user also has the option to:
 2. UPDATE a car park (this will only update the information on the MySQL database and not the live API).
 3. DELETE a car park (again only data found on the MySql database)
 
+This web application is hosted at the following address: [https://lauralyons1982.eu.pythonanywhere.com/](https://lauralyons1982.eu.pythonanywhere.com/)
+
+Unfortunately, free accounts on PythonAnywhere can only make outbound HTTP/HTTPS requests to sites on their whitelist, for which Cork City Councils Parking API is not included. This means the ability to check if there is available car spaces in the 8 car parks on the live API site is not available on PythonAnywhere.This feature can still be accessed by running the server available at [https://github.com/Laura6826/WSAA-project](https://github.com/Laura6826/WSAA-project).
+
 ## 3. How to get started
 
 ### Necessary software
@@ -106,6 +110,7 @@ pip install -r requirements.txt
 ```
 
 **Project Structure**:
+
 ```ruby
 WSAA-project/
   ├── dao

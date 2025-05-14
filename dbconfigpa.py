@@ -7,4 +7,5 @@ mysql = {
     'user':"lauralyons1982",
     'password':"mysqlpassword6826",
     'database':"lauralyons1982$CarParks",
+    "port": 3306
 }
